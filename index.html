@@ -10,6 +10,7 @@
             --primary: #2E7D32;
             --secondary: #4CAF50;
             --accent: #FF9800;
+            --warning: #F44336;
             --bg-color: #F7F9FC;
             --card-bg: #FFFFFF;
             --text-main: #2D3436;
@@ -19,19 +20,20 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; }
 
-        /* HEADER Y BOTÓN DE DEUDAS */
+        /* HEADER Y BOTONES SUPERIORES */
         header { 
             background-color: var(--card-bg); padding: 15px; text-align: center; 
             box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        h1 { color: var(--primary); font-size: 1.5rem; }
+        h1 { color: var(--primary); font-size: 1.2rem; flex-grow: 1; text-align: center; margin: 0; }
         
         .btn-header {
-            position: absolute; right: 15px; top: 15px;
             background: var(--accent); color: white; border: none;
             padding: 8px 12px; border-radius: 8px; font-weight: bold;
-            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 0.9rem;
         }
+        .btn-header.blue { background: #2196F3; }
 
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         .view { display: none; }
@@ -50,17 +52,20 @@
         .qty-controls { display: flex; align-items: center; gap: 15px; }
         .btn-qty { background: #f0f0f0; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
         
-        /* Sección de Fiado */
+        /* Sección de Fiado e Ingreso */
         .fiado-box { background: #fff3e0; padding: 15px; border-radius: var(--border-radius); margin-top: 20px; border: 1px solid #ffe0b2; }
         .fiado-box label { font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; cursor: pointer;}
         .fiado-box input[type="checkbox"] { width: 20px; height: 20px; }
         .fiado-box select { width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; font-size: 1.1rem; border: 1px solid #ccc; display: none; }
+        
+        .input-form { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 1.1rem; }
 
         /* Botones Principales */
         .btn-submit { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; font-size: 1.2rem; font-weight: bold; border-radius: var(--border-radius); margin-top: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);}
         .btn-submit:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
         
         .btn-pay { background: var(--secondary); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;}
+        .btn-warning-icon { background: #FFC107; color: #000; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem;}
 
         /* Navegación Inferior */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
@@ -69,6 +74,7 @@
 
         .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 20px; border-radius: 50px; opacity: 0; transition: opacity 0.3s; z-index: 100; pointer-events: none;}
         .toast.show { opacity: 1; }
+        .toast.error { background: var(--warning); }
     </style>
 </head>
 <body>
@@ -84,7 +90,8 @@
     </div>
 
     <header>
-        <h1>Control de Helados</h1>
+        <button class="btn-header blue" onclick="switchView('ingreso')">🛒 Llenar</button>
+        <h1>Helados</h1>
         <button class="btn-header" onclick="switchView('deudas')">📓 Deudas</button>
     </header>
 
@@ -110,7 +117,6 @@
                 </label>
                 <select id="select-cliente">
                     <option value="">Selecciona el cliente...</option>
-                    <!-- Se llenará desde la base de datos -->
                 </select>
             </div>
 
@@ -119,11 +125,26 @@
             </button>
         </div>
 
-        <!-- VISTA: DEUDAS (NUEVA) -->
+        <!-- VISTA: DEUDAS -->
         <div id="view-deudas" class="view">
             <h2 style="margin-bottom: 15px; color: var(--accent);">Libreta de Deudas</h2>
             <div id="deudas-container">
                 <p>Cargando clientes...</p>
+            </div>
+        </div>
+
+        <!-- VISTA: INGRESO DE INVENTARIO (NUEVA) -->
+        <div id="view-ingreso" class="view">
+            <h2 style="margin-bottom: 15px; color: #2196F3;">🛒 Ingresar al Inventario</h2>
+            <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <p style="margin-bottom: 15px; color: #666;">Añade nuevos sabores o suma cantidad a los que ya existen.</p>
+                
+                <input type="text" id="ingreso-sabor" class="input-form" placeholder="Sabor (ej. Coco, Chocolate)" autocomplete="off">
+                <input type="number" id="ingreso-cantidad" class="input-form" placeholder="Cantidad a sumar (ej. 10)" inputmode="numeric">
+                
+                <button class="btn-submit" style="background: #2196F3;" onclick="guardarInventario()">
+                    ➕ Guardar en Inventario
+                </button>
             </div>
         </div>
     </div>
@@ -135,8 +156,9 @@
 
     <!-- SCRIPT DE FIREBASE -->
     <script type="module">
+        // Importamos getDoc y setDoc adicionales
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // ==========================================
         // AQUÍ VAN TUS CLAVES DE FIREBASE
@@ -149,14 +171,14 @@
             messagingSenderId: "683985818004",
             appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
             measurementId: "G-BVR8BXKPDR"
-        };
+};
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        window.db = db; // Exportar db para usar en escaner
 
         // ===== FUNCIONES DE BASE DE DATOS =====
 
-        // 1. Cargar lista de clientes para el Fiado
         window.cargarClientes = async function() {
             try {
                 const querySnapshot = await getDocs(collection(db, "clientes"));
@@ -172,19 +194,21 @@
                     const id = docSnap.id;
                     const datos = docSnap.data();
                     
-                    // Llenar el selector
                     select.innerHTML += `<option value="${id}">${datos.nombre}</option>`;
 
-                    // Llenar la vista de deudas (solo si deben > 0)
                     if (datos.deuda > 0) {
                         hayDeudas = true;
+                        // NUEVO: Agregado el botón de advertencia para WhatsApp ⚠️
                         contenedorDeudas.innerHTML += `
                             <div class="card-item" style="border-left: 5px solid var(--accent);">
                                 <div>
                                     <div style="font-weight:bold; font-size:1.1rem;">${datos.nombre}</div>
                                     <div style="color:var(--accent); font-weight:bold;">Debe: $${datos.deuda.toLocaleString('es-CO')}</div>
                                 </div>
-                                <button class="btn-pay" onclick="abonarDeuda('${id}', '${datos.nombre}', ${datos.deuda})">Abonar</button>
+                                <div style="display:flex; gap:8px;">
+                                    <button class="btn-warning-icon" onclick="copiarRecordatorio('${datos.nombre}', ${datos.deuda})" title="Copiar Recordatorio">⚠️</button>
+                                    <button class="btn-pay" onclick="abonarDeuda('${id}', '${datos.nombre}', ${datos.deuda})">Abonar</button>
+                                </div>
                             </div>
                         `;
                     }
@@ -197,113 +221,123 @@
             }
         };
 
-        // 2. Abonar o pagar deuda
         window.abonarDeuda = async function(id, nombre, deudaActual) {
             let monto = prompt(`💰 Deuda actual de ${nombre}: $${deudaActual.toLocaleString('es-CO')}\n¿Cuánto dinero va a abonar/pagar hoy?`, deudaActual);
             
-            if (monto === null || monto.trim() === "") return; // Canceló
-            monto = parseInt(monto.replace(/\./g, '')); // Limpiar puntos por si acaso
+            if (monto === null || monto.trim() === "") return;
+            monto = parseInt(monto.replace(/\./g, ''));
 
             if (isNaN(monto) || monto <= 0) return alert("❌ Monto inválido");
             if (monto > deudaActual) return alert("❌ No puede abonar más dinero del que debe.");
 
             try {
-                // Restar deuda en la base de datos
-                await updateDoc(doc(db, "clientes", id), {
-                    deuda: increment(-monto)
-                });
+                await updateDoc(doc(db, "clientes", id), { deuda: increment(-monto) });
+                mostrarToast(`✅ Abono de $${monto} registrado`, false);
+                cargarClientes();
+            } catch (error) { alert("Error al procesar el pago."); }
+        };
+
+        // NUEVA FUNCIÓN: Agregar Helados al Inventario manualmente
+        window.guardarInventario = async function() {
+            const inputSabor = document.getElementById('ingreso-sabor').value.trim();
+            const inputCantidad = parseInt(document.getElementById('ingreso-cantidad').value);
+
+            if (inputSabor === "" || isNaN(inputCantidad) || inputCantidad <= 0) {
+                return alert("⚠️ Escribe un sabor válido y una cantidad mayor a 0.");
+            }
+
+            // Convertimos el ID a minúscula tal cual se lee en el QR
+            const saborID = inputSabor.toLowerCase();
+            // Ponemos la primera letra en mayúscula para que se vea bonito en la BD
+            const saborBonito = inputSabor.charAt(0).toUpperCase() + inputSabor.slice(1).toLowerCase();
+
+            try {
+                // "setDoc" con "merge: true" suma la cantidad si ya existe, o crea el sabor si es nuevo
+                await setDoc(doc(db, "inventario", saborID), {
+                    nombre: saborBonito,
+                    stock: increment(inputCantidad)
+                }, { merge: true });
+
+                mostrarToast(`✅ ¡Añadidos ${inputCantidad} de ${saborBonito}!`, false);
                 
-                mostrarToast(`✅ Abono de $${monto} registrado a ${nombre}`);
-                cargarClientes(); // Recargar la lista
+                // Limpiar inputs
+                document.getElementById('ingreso-sabor').value = "";
+                document.getElementById('ingreso-cantidad').value = "";
+                switchView('list'); // Volver a la lista
+
             } catch (error) {
-                alert("Error al procesar el pago.");
+                console.error(error);
+                alert("Error guardando el inventario.");
             }
         };
 
-        // 3. Subir la venta (Contado o Fiado)
         window.subirBaseDeDatos = async function() {
             const btn = document.getElementById('btn-subir');
             const esFiado = document.getElementById('check-fiado').checked;
             const clienteId = document.getElementById('select-cliente').value;
 
-            if (esFiado && clienteId === "") {
-                return alert("⚠️ Por favor, selecciona un cliente para fiarle.");
-            }
+            if (esFiado && clienteId === "") return alert("⚠️ Selecciona un cliente para fiarle.");
 
-            btn.disabled = true;
-            btn.innerText = "⏳ Subiendo...";
+            btn.disabled = true; btn.innerText = "⏳ Subiendo...";
 
             try {
                 let totalVentaDinero = 0;
 
-                // Procesamos cada helado escaneado
                 for (const sabor in window.carrito) {
                     const item = window.carrito[sabor];
                     if (item.cantidad <= 0) continue;
 
-                    // Sumamos el costo de los helados de este sabor
                     totalVentaDinero += (item.cantidad * item.precio);
 
-                    // A) REGISTRAR LA VENTA 
                     await addDoc(collection(db, "ventas"), {
-                        sabor: item.nombre,
-                        cantidad: item.cantidad,
+                        sabor: item.nombre, cantidad: item.cantidad,
                         tipo: esFiado ? "fiado" : "contado",
                         cliente: esFiado ? clienteId : "ninguno",
                         fecha: serverTimestamp()
                     });
 
-                    // B) DESCONTAR DEL INVENTARIO
-                    await updateDoc(doc(db, "inventario", item.nombre), {
-                        stock: increment(-item.cantidad) 
-                    });
+                    await updateDoc(doc(db, "inventario", item.nombre), { stock: increment(-item.cantidad) });
                 }
 
-                // C) SI ES FIADO, SUMAR DEUDA AL CLIENTE
                 if (esFiado) {
-                    await updateDoc(doc(db, "clientes", clienteId), {
-                        deuda: increment(totalVentaDinero)
-                    });
+                    await updateDoc(doc(db, "clientes", clienteId), { deuda: increment(totalVentaDinero) });
                 }
 
-                mostrarToast(esFiado ? "✅ Fiado guardado exitosamente" : "✅ Venta subida exitosamente");
+                mostrarToast(esFiado ? "✅ Fiado guardado exitosamente" : "✅ Venta subida exitosamente", false);
                 
-                // Reiniciar todo
                 window.carrito = {}; 
                 document.getElementById('check-fiado').checked = false;
-                toggleFiado();
-                window.actualizarInterfaz();
-                window.cargarClientes(); // Actualizar libretas
+                toggleFiado(); window.actualizarInterfaz(); window.cargarClientes(); 
                 
             } catch (error) {
-                console.error("Error subiendo datos:", error);
-                alert("Hubo un error. Verifica que los nombres de los QR existan en inventario.");
+                alert("Hubo un error subiendo los datos.");
             } finally {
                 btn.innerText = "☁️ Subir Ventas a Base de Datos";
             }
         };
+
+        // EXPORTAR FIREBASE PARA EL ESCÁNER
+        window.getDoc = getDoc;
+        window.doc = doc;
     </script>
 
     <!-- SCRIPT DE LÓGICA DE LA APP Y UI -->
     <script>
         const PASSWORD_APP = "1234";
-        const PRECIO_BASE = 2500; // <--- PRECIO PARA CALCULAR LAS DEUDAS
+        const PRECIO_BASE = 2500;
         window.carrito = {};
         let html5QrcodeScanner = null;
-        let lastScanTime = 0;
+        let isProcessingScan = false; // Evitar escaneos dobles rápidos
 
-        // INICIO Y LOGIN
         window.onload = () => {
             if (localStorage.getItem("auth") === "true") {
                 document.getElementById("login-screen").style.display = "none";
-                // Esperar un segundito a que Firebase cargue e inicializar clientes
                 setTimeout(() => { if(window.cargarClientes) window.cargarClientes(); }, 1000);
             }
         };
 
         window.verificarLogin = function() {
-            const input = document.getElementById("pin-input").value;
-            if (input === PASSWORD_APP) {
+            if (document.getElementById("pin-input").value === PASSWORD_APP) {
                 localStorage.setItem("auth", "true");
                 document.getElementById("login-screen").style.display = "none";
                 setTimeout(() => { if(window.cargarClientes) window.cargarClientes(); }, 500);
@@ -312,7 +346,6 @@
             }
         };
 
-        // VISIBILIDAD DEL SELECTOR DE FIADO
         window.toggleFiado = function() {
             const isChecked = document.getElementById('check-fiado').checked;
             const select = document.getElementById('select-cliente');
@@ -320,32 +353,43 @@
             if(!isChecked) select.value = "";
         };
 
-        // PITIDO DE CÁMARA
+        // NUEVA FUNCIÓN: Copiar Recordatorio de Whatsapp
+        window.copiarRecordatorio = function(nombre, deuda) {
+            const numHelados = Math.floor(deuda / PRECIO_BASE);
+            const mensaje = `Hola ${nombre}, ¿cómo estás? Te escribo para recordarte que tienes ${numHelados} heladitos pendientes por ahí (son $${deuda.toLocaleString('es-CO')}). Cuando puedas me haces el paguito 🙏. ¡Gracias y bendiciones!`;
+            
+            navigator.clipboard.writeText(mensaje).then(() => {
+                mostrarToast(`✅ Mensaje para ${nombre} copiado`, false);
+            }).catch(err => {
+                alert("No se pudo copiar el mensaje. Dale permisos al navegador.");
+            });
+        };
+
         function playBeep() {
             try {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioCtx.createOscillator();
-                oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); 
-                oscillator.connect(audioCtx.destination); oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.15);
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime); 
+                osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.15);
             } catch(e) {}
             if (navigator.vibrate) navigator.vibrate(100);
         }
+        function playErrorBeep() {
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        }
 
-        // NAVEGACIÓN
         window.switchView = function(viewName) {
             document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             
             document.getElementById(`view-${viewName}`).classList.add('active');
             
-            // Si el botón está en la barra inferior (escanear o lista), marcarlo
             const btnNav = document.getElementById(`btn-${viewName}`);
             if(btnNav) btnNav.classList.add('active');
 
             if (viewName === 'scanner') startScanner();
             else stopScanner();
 
-            // Si entra a deudas, recargar los datos
             if (viewName === 'deudas' && window.cargarClientes) window.cargarClientes();
         };
 
@@ -353,23 +397,48 @@
             if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader");
             html5QrcodeScanner.start(
                 { facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
-                (textoDecodificado) => {
-                    const now = Date.now();
-                    if (now - lastScanTime < 2000) return; 
-                    lastScanTime = now;
+                async (textoDecodificado) => {
+                    if (isProcessingScan) return;
+                    isProcessingScan = true;
 
                     const sabor = textoDecodificado.trim().toLowerCase();
-                    playBeep();
+                    const cantidadEnCarrito = window.carrito[sabor] ? window.carrito[sabor].cantidad : 0;
 
-                    if (window.carrito[sabor]) {
-                        window.carrito[sabor].cantidad++;
-                    } else {
-                        // AQUÍ ASIGNAMOS EL PRECIO A CADA HELADO
-                        window.carrito[sabor] = { nombre: sabor, cantidad: 1, precio: PRECIO_BASE };
+                    try {
+                        // VERIFICAR INVENTARIO EN FIREBASE EN TIEMPO REAL
+                        const docRef = window.doc(window.db, "inventario", sabor);
+                        const docSnap = await window.getDoc(docRef);
+
+                        if (docSnap.exists()) {
+                            const stockActual = docSnap.data().stock;
+
+                            if (stockActual > cantidadEnCarrito) {
+                                // Sí hay inventario
+                                playBeep();
+                                if (window.carrito[sabor]) {
+                                    window.carrito[sabor].cantidad++;
+                                } else {
+                                    // Guardamos el maxStock para que no puedan pasarse usando el botón "+"
+                                    window.carrito[sabor] = { nombre: sabor, cantidad: 1, precio: PRECIO_BASE, maxStock: stockActual };
+                                }
+                                mostrarToast(`¡Helado de ${sabor} añadido!`, false);
+                                actualizarInterfaz();
+                            } else {
+                                // No hay suficiente inventario
+                                playErrorBeep();
+                                mostrarToast(`❌ Helado de ${sabor} sin inventario`, true);
+                            }
+                        } else {
+                            // El helado no existe en Firebase
+                            playErrorBeep();
+                            mostrarToast("❌ Helado no registrado en sistema", true);
+                        }
+                    } catch (err) {
+                        mostrarToast("⚠️ Error verificando inventario", true);
                     }
 
-                    mostrarToast(`¡Helado de ${sabor} añadido!`);
-                    actualizarInterfaz();
+                    // Esperar 1.5 seg antes de permitir otro escaneo para no saturar la base de datos
+                    setTimeout(() => { isProcessingScan = false; }, 1500); 
                 },
                 (error) => {}
             ).catch(err => alert("Da permisos de cámara para escanear."));
@@ -409,15 +478,26 @@
 
         window.cambiarCantidad = function(idSabor, cambio) {
             if (window.carrito[idSabor]) {
-                window.carrito[idSabor].cantidad += cambio;
+                const nuevaCantidad = window.carrito[idSabor].cantidad + cambio;
+                
+                // Evitar que aumenten más del stock que hay en base de datos usando el botón "+"
+                if (nuevaCantidad > window.carrito[idSabor].maxStock) {
+                    mostrarToast("❌ No hay más inventario", true);
+                    return;
+                }
+                
+                window.carrito[idSabor].cantidad = nuevaCantidad;
                 if (window.carrito[idSabor].cantidad < 0) window.carrito[idSabor].cantidad = 0;
                 actualizarInterfaz();
             }
         };
 
-        window.mostrarToast = function(mensaje) {
+        window.mostrarToast = function(mensaje, isError = false) {
             const toast = document.getElementById('toast');
             toast.innerText = mensaje;
+            if (isError) toast.classList.add('error');
+            else toast.classList.remove('error');
+            
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2000);
         };
