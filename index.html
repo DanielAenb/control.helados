@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control de Helados</title>
-    <!-- Librería para escanear QR -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         :root {
             --primary: #2E7D32;
             --secondary: #4CAF50;
+            --accent: #FF9800;
             --bg-color: #F7F9FC;
             --card-bg: #FFFFFF;
             --text-main: #2D3436;
@@ -19,36 +19,50 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; }
 
-        header { background-color: var(--card-bg); padding: 15px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        /* HEADER Y BOTÓN DE DEUDAS */
+        header { 
+            background-color: var(--card-bg); padding: 15px; text-align: center; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative;
+        }
         h1 { color: var(--primary); font-size: 1.5rem; }
+        
+        .btn-header {
+            position: absolute; right: 15px; top: 15px;
+            background: var(--accent); color: white; border: none;
+            padding: 8px 12px; border-radius: 8px; font-weight: bold;
+            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
 
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
-        
-        /* Sistema de Vistas */
         .view { display: none; }
         .view.active { display: block; }
 
         /* Login Screen */
-        #login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color); z-index: 999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .login-box { background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;}
         .login-box input { padding: 10px; margin: 15px 0; width: 100%; font-size: 1.2rem; text-align: center; border: 1px solid #ccc; border-radius: 8px;}
         .login-box button { background: var(--primary); color: white; border: none; padding: 12px 20px; font-size: 1.1rem; border-radius: 8px; cursor: pointer; width: 100%;}
 
-        /* Escáner y Lista */
+        /* Escáner, Lista y Tarjetas */
         #reader { width: 100%; border-radius: var(--border-radius); overflow: hidden; background: #000; margin-bottom: 15px;}
-        .cart-item { background: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: var(--border-radius); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+        .card-item { background: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: var(--border-radius); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+        
         .qty-controls { display: flex; align-items: center; gap: 15px; }
         .btn-qty { background: #f0f0f0; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
         
-        /* Botón Subir a Base de Datos */
-        .btn-submit { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; font-size: 1.2rem; font-weight: bold; border-radius: var(--border-radius); margin-top: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);}
-        .btn-submit:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+        /* Sección de Fiado */
+        .fiado-box { background: #fff3e0; padding: 15px; border-radius: var(--border-radius); margin-top: 20px; border: 1px solid #ffe0b2; }
+        .fiado-box label { font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; cursor: pointer;}
+        .fiado-box input[type="checkbox"] { width: 20px; height: 20px; }
+        .fiado-box select { width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; font-size: 1.1rem; border: 1px solid #ccc; display: none; }
 
-        /* Navegación */
+        /* Botones Principales */
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; font-size: 1.2rem; font-weight: bold; border-radius: var(--border-radius); margin-top: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);}
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+        
+        .btn-pay { background: var(--secondary); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;}
+
+        /* Navegación Inferior */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
         .nav-btn { flex: 1; padding: 15px; border: none; background: none; font-size: 1rem; font-weight: bold; color: #888; cursor: pointer; }
         .nav-btn.active { color: var(--primary); border-top: 3px solid var(--primary); }
@@ -63,7 +77,6 @@
     <div id="login-screen">
         <div class="login-box">
             <h2>🔒 Acceso Restringido</h2>
-            <p style="margin-top:10px; color:#666;">Ingrese la contraseña para continuar</p>
             <input type="password" id="pin-input" placeholder="Contraseña" inputmode="numeric">
             <button onclick="verificarLogin()">Entrar</button>
             <p id="login-error" style="color:red; margin-top:10px; display:none;">Contraseña incorrecta</p>
@@ -72,9 +85,10 @@
 
     <header>
         <h1>Control de Helados</h1>
+        <button class="btn-header" onclick="switchView('deudas')">📓 Deudas</button>
     </header>
 
-    <div id="toast" class="toast">¡Helado escaneado!</div>
+    <div id="toast" class="toast">Mensaje</div>
 
     <div class="container">
         <!-- VISTA: ESCANEAR -->
@@ -88,9 +102,29 @@
             <h2 style="margin-bottom: 15px;">Helados a Registrar</h2>
             <div id="cart-container"></div>
             
+            <!-- CAJA DE FIADO -->
+            <div class="fiado-box">
+                <label>
+                    <input type="checkbox" id="check-fiado" onchange="toggleFiado()">
+                    📝 Vender como Fiado
+                </label>
+                <select id="select-cliente">
+                    <option value="">Selecciona el cliente...</option>
+                    <!-- Se llenará desde la base de datos -->
+                </select>
+            </div>
+
             <button id="btn-subir" class="btn-submit" onclick="subirBaseDeDatos()" disabled>
                 ☁️ Subir Ventas a Base de Datos
             </button>
+        </div>
+
+        <!-- VISTA: DEUDAS (NUEVA) -->
+        <div id="view-deudas" class="view">
+            <h2 style="margin-bottom: 15px; color: var(--accent);">Libreta de Deudas</h2>
+            <div id="deudas-container">
+                <p>Cargando clientes...</p>
+            </div>
         </div>
     </div>
 
@@ -102,136 +136,235 @@
     <!-- SCRIPT DE FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // ==========================================
-        // 1. AQUÍ VAN TUS CLAVES DE FIREBASE
+        // AQUÍ VAN TUS CLAVES DE FIREBASE
         // ==========================================
         const firebaseConfig = {
-            apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
-            authDomain: "helados-0612.firebaseapp.com",
-            projectId: "helados-0612",
-            storageBucket: "helados-0612.firebasestorage.app",
-            messagingSenderId: "683985818004",
-            appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
-            measurementId: "G-BVR8BXKPDR"
+            apiKey: "TU_API_KEY",
+            authDomain: "tu-proyecto.firebaseapp.com",
+            projectId: "tu-proyecto",
+            storageBucket: "tu-proyecto.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Hacer la función de subir global para que el botón HTML la pueda usar
+        // ===== FUNCIONES DE BASE DE DATOS =====
+
+        // 1. Cargar lista de clientes para el Fiado
+        window.cargarClientes = async function() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "clientes"));
+                const select = document.getElementById('select-cliente');
+                const contenedorDeudas = document.getElementById('deudas-container');
+                
+                select.innerHTML = '<option value="">Selecciona el cliente...</option>';
+                contenedorDeudas.innerHTML = '';
+                
+                let hayDeudas = false;
+
+                querySnapshot.forEach((docSnap) => {
+                    const id = docSnap.id;
+                    const datos = docSnap.data();
+                    
+                    // Llenar el selector
+                    select.innerHTML += `<option value="${id}">${datos.nombre}</option>`;
+
+                    // Llenar la vista de deudas (solo si deben > 0)
+                    if (datos.deuda > 0) {
+                        hayDeudas = true;
+                        contenedorDeudas.innerHTML += `
+                            <div class="card-item" style="border-left: 5px solid var(--accent);">
+                                <div>
+                                    <div style="font-weight:bold; font-size:1.1rem;">${datos.nombre}</div>
+                                    <div style="color:var(--accent); font-weight:bold;">Debe: $${datos.deuda.toLocaleString('es-CO')}</div>
+                                </div>
+                                <button class="btn-pay" onclick="abonarDeuda('${id}', '${datos.nombre}', ${datos.deuda})">Abonar</button>
+                            </div>
+                        `;
+                    }
+                });
+
+                if(!hayDeudas) contenedorDeudas.innerHTML = '<p style="text-align:center; color:#888;">No hay deudas pendientes 🎉</p>';
+
+            } catch (error) {
+                console.error("Error al cargar clientes:", error);
+            }
+        };
+
+        // 2. Abonar o pagar deuda
+        window.abonarDeuda = async function(id, nombre, deudaActual) {
+            let monto = prompt(`💰 Deuda actual de ${nombre}: $${deudaActual.toLocaleString('es-CO')}\n¿Cuánto dinero va a abonar/pagar hoy?`, deudaActual);
+            
+            if (monto === null || monto.trim() === "") return; // Canceló
+            monto = parseInt(monto.replace(/\./g, '')); // Limpiar puntos por si acaso
+
+            if (isNaN(monto) || monto <= 0) return alert("❌ Monto inválido");
+            if (monto > deudaActual) return alert("❌ No puede abonar más dinero del que debe.");
+
+            try {
+                // Restar deuda en la base de datos
+                await updateDoc(doc(db, "clientes", id), {
+                    deuda: increment(-monto)
+                });
+                
+                mostrarToast(`✅ Abono de $${monto} registrado a ${nombre}`);
+                cargarClientes(); // Recargar la lista
+            } catch (error) {
+                alert("Error al procesar el pago.");
+            }
+        };
+
+        // 3. Subir la venta (Contado o Fiado)
         window.subirBaseDeDatos = async function() {
             const btn = document.getElementById('btn-subir');
+            const esFiado = document.getElementById('check-fiado').checked;
+            const clienteId = document.getElementById('select-cliente').value;
+
+            if (esFiado && clienteId === "") {
+                return alert("⚠️ Por favor, selecciona un cliente para fiarle.");
+            }
+
             btn.disabled = true;
             btn.innerText = "⏳ Subiendo...";
 
             try {
-                // Recorremos los helados escaneados
+                let totalVentaDinero = 0;
+
+                // Procesamos cada helado escaneado
                 for (const sabor in window.carrito) {
                     const item = window.carrito[sabor];
-                    if (item.cantidad <= 0) continue; // Ignorar si la cantidad es 0
+                    if (item.cantidad <= 0) continue;
 
-                    // A) REGISTRAR LA VENTA
+                    // Sumamos el costo de los helados de este sabor
+                    totalVentaDinero += (item.cantidad * item.precio);
+
+                    // A) REGISTRAR LA VENTA 
                     await addDoc(collection(db, "ventas"), {
                         sabor: item.nombre,
                         cantidad: item.cantidad,
+                        tipo: esFiado ? "fiado" : "contado",
+                        cliente: esFiado ? clienteId : "ninguno",
                         fecha: serverTimestamp()
                     });
 
                     // B) DESCONTAR DEL INVENTARIO
-                    // Busca el documento en la colección "inventario" que se llame igual que el sabor
-                    const inventarioRef = doc(db, "inventario", item.nombre);
-                    await updateDoc(inventarioRef, {
-                        // "increment" suma o resta matemáticamente en la nube de forma segura
+                    await updateDoc(doc(db, "inventario", item.nombre), {
                         stock: increment(-item.cantidad) 
                     });
                 }
 
-                mostrarToast("✅ ¡Datos subidos exitosamente!");
-                window.carrito = {}; // Vaciamos la lista
+                // C) SI ES FIADO, SUMAR DEUDA AL CLIENTE
+                if (esFiado) {
+                    await updateDoc(doc(db, "clientes", clienteId), {
+                        deuda: increment(totalVentaDinero)
+                    });
+                }
+
+                mostrarToast(esFiado ? "✅ Fiado guardado exitosamente" : "✅ Venta subida exitosamente");
+                
+                // Reiniciar todo
+                window.carrito = {}; 
+                document.getElementById('check-fiado').checked = false;
+                toggleFiado();
                 window.actualizarInterfaz();
+                window.cargarClientes(); // Actualizar libretas
                 
             } catch (error) {
                 console.error("Error subiendo datos:", error);
-                alert("Hubo un error. Verifica tu conexión e inténtalo de nuevo.");
+                alert("Hubo un error. Verifica que los nombres de los QR existan en inventario.");
             } finally {
                 btn.innerText = "☁️ Subir Ventas a Base de Datos";
             }
         };
     </script>
 
-    <!-- SCRIPT DE LÓGICA DE LA APP -->
+    <!-- SCRIPT DE LÓGICA DE LA APP Y UI -->
     <script>
-        // ==========================================
-        // 2. CONFIGURACIÓN DEL SISTEMA
-        // ==========================================
-        const PASSWORD_APP = "10545830"; // <-- Cambia esto por la contraseña que desees
+        const PASSWORD_APP = "1234";
+        const PRECIO_BASE = 2500; // <--- PRECIO PARA CALCULAR LAS DEUDAS
         window.carrito = {};
         let html5QrcodeScanner = null;
         let lastScanTime = 0;
 
-        // SISTEMA DE LOGIN PERSISTENTE
+        // INICIO Y LOGIN
         window.onload = () => {
             if (localStorage.getItem("auth") === "true") {
                 document.getElementById("login-screen").style.display = "none";
+                // Esperar un segundito a que Firebase cargue e inicializar clientes
+                setTimeout(() => { if(window.cargarClientes) window.cargarClientes(); }, 1000);
             }
         };
 
         window.verificarLogin = function() {
             const input = document.getElementById("pin-input").value;
             if (input === PASSWORD_APP) {
-                localStorage.setItem("auth", "true"); // Guarda la sesión en el celular
+                localStorage.setItem("auth", "true");
                 document.getElementById("login-screen").style.display = "none";
+                setTimeout(() => { if(window.cargarClientes) window.cargarClientes(); }, 500);
             } else {
                 document.getElementById("login-error").style.display = "block";
             }
         };
 
-        // GENERADOR DE SONIDO (Pitido BEEP) - ¡No requiere archivo mp3!
+        // VISIBILIDAD DEL SELECTOR DE FIADO
+        window.toggleFiado = function() {
+            const isChecked = document.getElementById('check-fiado').checked;
+            const select = document.getElementById('select-cliente');
+            select.style.display = isChecked ? "block" : "none";
+            if(!isChecked) select.value = "";
+        };
+
+        // PITIDO DE CÁMARA
         function playBeep() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const oscillator = audioCtx.createOscillator();
-                oscillator.type = 'sine'; // Tipo de sonido
-                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Tono
-                oscillator.connect(audioCtx.destination);
-                oscillator.start();
-                oscillator.stop(audioCtx.currentTime + 0.15); // Duración: 0.15 segundos
-            } catch(e) { console.log("Audio no soportado"); }
-
-            // Hacer vibrar el celular (si el navegador lo permite)
+                oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); 
+                oscillator.connect(audioCtx.destination); oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.15);
+            } catch(e) {}
             if (navigator.vibrate) navigator.vibrate(100);
         }
 
-        // NAVEGACIÓN Y ESCÁNER
+        // NAVEGACIÓN
         window.switchView = function(viewName) {
             document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            
             document.getElementById(`view-${viewName}`).classList.add('active');
-            document.getElementById(`btn-${viewName}`).classList.add('active');
+            
+            // Si el botón está en la barra inferior (escanear o lista), marcarlo
+            const btnNav = document.getElementById(`btn-${viewName}`);
+            if(btnNav) btnNav.classList.add('active');
 
             if (viewName === 'scanner') startScanner();
             else stopScanner();
+
+            // Si entra a deudas, recargar los datos
+            if (viewName === 'deudas' && window.cargarClientes) window.cargarClientes();
         };
 
         function startScanner() {
             if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader");
             html5QrcodeScanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
+                { facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
                 (textoDecodificado) => {
                     const now = Date.now();
                     if (now - lastScanTime < 2000) return; 
                     lastScanTime = now;
 
                     const sabor = textoDecodificado.trim().toLowerCase();
-                    playBeep(); // <--- Hace el pitido y vibra
+                    playBeep();
 
                     if (window.carrito[sabor]) {
                         window.carrito[sabor].cantidad++;
                     } else {
-                        window.carrito[sabor] = { nombre: sabor, cantidad: 1 };
+                        // AQUÍ ASIGNAMOS EL PRECIO A CADA HELADO
+                        window.carrito[sabor] = { nombre: sabor, cantidad: 1, precio: PRECIO_BASE };
                     }
 
                     mostrarToast(`¡Helado de ${sabor} añadido!`);
@@ -257,7 +390,7 @@
                 if(item.cantidad > 0) totalItems++;
                 
                 const div = document.createElement('div');
-                div.className = 'cart-item';
+                div.className = 'card-item';
                 div.innerHTML = `
                     <div style="font-size: 1.1rem; font-weight:bold; text-transform:capitalize;">${item.nombre}</div>
                     <div class="qty-controls">
@@ -269,7 +402,6 @@
                 contenedor.appendChild(div);
             }
 
-            // Habilitar o deshabilitar el botón de subir
             btnSubir.disabled = totalItems === 0;
             if(totalItems === 0) contenedor.innerHTML = '<p style="text-align:center; color:#888;">Escanea un QR para empezar</p>';
         };
