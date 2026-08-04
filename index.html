@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dulce&Frío - Escáner de Ventas</title>
+    <!-- Librería para escanear QR -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --bg-color: #F7F9FC;
+            --card-bg: #FFFFFF;
+            --text-main: #2D3436;
+            --text-muted: #636E72;
+            --border-radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: 80px; /* Espacio para el nav inferior */
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Vistas */
+        .view {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Escáner */
+        #reader {
+            width: 100%;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            border: none !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            background: #000;
+        }
+
+        /* Lista de Ventas */
+        .cart-item {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .item-info h3 {
+            font-size: 1.1rem;
+            text-transform: capitalize;
+            margin-bottom: 4px;
+        }
+        
+        .item-info p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-color);
+            padding: 6px;
+            border-radius: 50px;
+        }
+
+        .btn-qty {
+            background: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qty-display {
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* Total y Footer */
+        .total-section {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+        }
+
+        .total-section h2 { font-size: 1.2rem; }
+        .total-section .amount { font-size: 1.5rem; font-weight: bold; }
+
+        /* Navegación Inferior */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: var(--card-bg);
+            display: flex;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            background: none;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-btn.active {
+            color: var(--primary);
+            border-top: 3px solid var(--primary);
+        }
+
+        /* Notificación de escaneo exitoso */
+        .toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--secondary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Dulce&Frío POS</h1>
+    </header>
+
+    <div id="toast" class="toast">¡Helado agregado!</div>
+
+    <div class="container">
+        <!-- VISTA: ESCANEAR -->
+        <div id="view-scanner" class="view">
+            <h2 style="margin-bottom: 16px; text-align: center;">Escanear Helado</h2>
+            <div id="reader"></div>
+        </div>
+
+        <!-- VISTA: LISTA DE VENTAS -->
+        <div id="view-list" class="view active">
+            <h2 style="margin-bottom: 16px;">Lista de Ventas</h2>
+            <div id="cart-container">
+                <!-- Los items escaneados aparecerán aquí -->
+            </div>
+            
+            <div class="total-section">
+                <h2>Total:</h2>
+                <div class="amount">$<span id="total-price">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <button class="nav-btn" onclick="switchView('scanner')" id="btn-scanner">📷 Escanear</button>
+        <button class="nav-btn active" onclick="switchView('list')" id="btn-list">🛒 Ventas</button>
+    </div>
+
+    <script>
+        // ESTADO DE LA APLICACIÓN
+        const PRECIO_BASE = 2500;
+        const carrito = {}; // Objeto para guardar los helados y sus cantidades
+        let html5QrcodeScanner = null;
+        let lastScanTime = 0; // Para evitar escaneos dobles accidentales
+
+        // NAVEGACIÓN ENTRE PANTALLAS
+        function switchView(viewName) {
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            document.getElementById(`btn-${viewName}`).classList.add('active');
+
+            if (viewName === 'scanner') {
+                startScanner();
+            } else {
+                stopScanner();
+            }
+        }
+
+        // FUNCIONES DEL ESCÁNER
+        function startScanner() {
+            if (!html5QrcodeScanner) {
+                html5QrcodeScanner = new Html5Qrcode("reader");
+            }
+            
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, // Usa la cámara trasera
+                config,
+                onScanSuccess,
+                (errorMessage) => { /* Ignorar errores de lectura constantes */ }
+            ).catch(err => {
+                console.error("Error al iniciar cámara", err);
+                alert("Por favor, permite el acceso a la cámara.");
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
+                html5QrcodeScanner.stop().catch(err => console.error("Error al detener cámara", err));
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            // Prevenir múltiples escaneos del mismo código en menos de 2 segundos
+            const now = Date.now();
+            if (now - lastScanTime < 2000) return; 
+            lastScanTime = now;
+
+            const sabor = decodedText.trim().toLowerCase();
+
+            // LÓGICA DE AGREGAR AL CARRITO (Cumpliendo tus reglas)
+            if (carrito[sabor]) {
+                carrito[sabor].cantidad++;
+            } else {
+                carrito[sabor] = { 
+                    nombre: sabor, 
+                    cantidad: 1, 
+                    precio: PRECIO_BASE 
+                };
+            }
+
+            mostrarToast(`¡${sabor} escaneado!`);
+            actualizarInterfaz();
+            
+            // Opcional: Cambiar automáticamente a la vista de lista después de escanear
+            // setTimeout(() => switchView('list'), 1000); 
+        }
+
+        // ACTUALIZAR INTERFAZ Y TOTALES
+        function actualizarInterfaz() {
+            const contenedor = document.getElementById('cart-container');
+            contenedor.innerHTML = '';
+            let total = 0;
+
+            // Recorrer el carrito para pintar el HTML
+            for (const [idSabor, item] of Object.entries(carrito)) {
+                // Sumar al total (si la cantidad es 0, suma 0)
+                total += (item.precio * item.cantidad);
+
+                const div = document.createElement('div');
+                div.className = 'cart-item';
+                div.innerHTML = `
+                    <div class="item-info">
+                        <h3>Helado de ${item.nombre}</h3>
+                        <p>$${item.precio} c/u</p>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="btn-qty" onclick="cambiarCantidad('${idSabor}', -1)">-</button>
+                        <span class="qty-display">${item.cantidad}</span>
+                        <button class="btn-qty" onclick="cambiarCantidad('${idSabor}', 1)">+</button>
+                    </div>
+                `;
+                contenedor.appendChild(div);
+            }
+
+            document.getElementById('total-price').innerText = total.toLocaleString('es-CO');
+        }
+
+        function cambiarCantidad(idSabor, cambio) {
+            if (carrito[idSabor]) {
+                carrito[idSabor].cantidad += cambio;
+                
+                // Regla: Si llega a 0 se queda en la lista, pero no puede ser negativo
+                if (carrito[idSabor].cantidad < 0) {
+                    carrito[idSabor].cantidad = 0;
+                }
+                
+                actualizarInterfaz();
+            }
+        }
+
+        function mostrarToast(mensaje) {
+            const toast = document.getElementById('toast');
+            toast.innerText = mensaje;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+    </script>
+</body>
+</html>
