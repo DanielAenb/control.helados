@@ -3,373 +3,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dulce&Frío - Escáner de Ventas</title>
+    <title>Control de Helados</title>
     <!-- Librería para escanear QR -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         :root {
-            --primary: #FF6B6B;
-            --secondary: #4ECDC4;
+            --primary: #2E7D32;
+            --secondary: #4CAF50;
             --bg-color: #F7F9FC;
             --card-bg: #FFFFFF;
             --text-main: #2D3436;
-            --text-muted: #636E72;
-            --border-radius: 16px;
+            --border-radius: 12px;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 80px; }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding-bottom: 80px; /* Espacio para el nav inferior */
-        }
+        header { background-color: var(--card-bg); padding: 15px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        h1 { color: var(--primary); font-size: 1.5rem; }
 
-        header {
-            background-color: var(--card-bg);
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        h1 {
-            color: var(--primary);
-            font-size: 1.5rem;
-        }
-
-        .container {
-            padding: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Vistas */
-        .view {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-        .view.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Escáner */
-        #reader {
-            width: 100%;
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            border: none !important;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            background: #000;
-        }
-
-        /* Lista de Ventas */
-        .cart-item {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            padding: 16px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .item-info h3 {
-            font-size: 1.1rem;
-            text-transform: capitalize;
-            margin-bottom: 4px;
-        }
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         
-        .item-info p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-        }
+        /* Sistema de Vistas */
+        .view { display: none; }
+        .view.active { display: block; }
 
-        .qty-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--bg-color);
-            padding: 6px;
-            border-radius: 50px;
+        /* Login Screen */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
+        .login-box { background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;}
+        .login-box input { padding: 10px; margin: 15px 0; width: 100%; font-size: 1.2rem; text-align: center; border: 1px solid #ccc; border-radius: 8px;}
+        .login-box button { background: var(--primary); color: white; border: none; padding: 12px 20px; font-size: 1.1rem; border-radius: 8px; cursor: pointer; width: 100%;}
 
-        .btn-qty {
-            background: white;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--primary);
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        /* Escáner y Lista */
+        #reader { width: 100%; border-radius: var(--border-radius); overflow: hidden; background: #000; margin-bottom: 15px;}
+        .cart-item { background: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: var(--border-radius); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+        .qty-controls { display: flex; align-items: center; gap: 15px; }
+        .btn-qty { background: #f0f0f0; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
+        
+        /* Botón Subir a Base de Datos */
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; font-size: 1.2rem; font-weight: bold; border-radius: var(--border-radius); margin-top: 20px; cursor: pointer; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);}
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
 
-        .qty-display {
-            font-weight: bold;
-            min-width: 20px;
-            text-align: center;
-        }
+        /* Navegación */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .nav-btn { flex: 1; padding: 15px; border: none; background: none; font-size: 1rem; font-weight: bold; color: #888; cursor: pointer; }
+        .nav-btn.active { color: var(--primary); border-top: 3px solid var(--primary); }
 
-        /* Total y Footer */
-        .total-section {
-            background: var(--primary);
-            color: white;
-            padding: 20px;
-            border-radius: var(--border-radius);
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
-        }
-
-        .total-section h2 { font-size: 1.2rem; }
-        .total-section .amount { font-size: 1.5rem; font-weight: bold; }
-
-        /* Navegación Inferior */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: var(--card-bg);
-            display: flex;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        }
-
-        .nav-btn {
-            flex: 1;
-            padding: 16px;
-            border: none;
-            background: none;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .nav-btn.active {
-            color: var(--primary);
-            border-top: 3px solid var(--primary);
-        }
-
-        /* Notificación de escaneo exitoso */
-        .toast {
-            position: fixed;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--secondary);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-weight: bold;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 100;
-        }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 20px; border-radius: 50px; opacity: 0; transition: opacity 0.3s; z-index: 100; pointer-events: none;}
         .toast.show { opacity: 1; }
     </style>
 </head>
 <body>
 
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>🔒 Acceso Restringido</h2>
+            <p style="margin-top:10px; color:#666;">Ingrese la contraseña para continuar</p>
+            <input type="password" id="pin-input" placeholder="Contraseña" inputmode="numeric">
+            <button onclick="verificarLogin()">Entrar</button>
+            <p id="login-error" style="color:red; margin-top:10px; display:none;">Contraseña incorrecta</p>
+        </div>
+    </div>
+
     <header>
-        <h1>Dulce&Frío POS</h1>
+        <h1>Control de Helados</h1>
     </header>
 
-    <div id="toast" class="toast">¡Helado agregado!</div>
+    <div id="toast" class="toast">¡Helado escaneado!</div>
 
     <div class="container">
         <!-- VISTA: ESCANEAR -->
         <div id="view-scanner" class="view">
-            <h2 style="margin-bottom: 16px; text-align: center;">Escanear Helado</h2>
+            <h2 style="margin-bottom: 10px; text-align: center;">Escanear QR</h2>
             <div id="reader"></div>
         </div>
 
-        <!-- VISTA: LISTA DE VENTAS -->
+        <!-- VISTA: LISTA Y SUBIR -->
         <div id="view-list" class="view active">
-            <h2 style="margin-bottom: 16px;">Lista de Ventas</h2>
-            <div id="cart-container">
-                <!-- Los items escaneados aparecerán aquí -->
-            </div>
+            <h2 style="margin-bottom: 15px;">Helados a Registrar</h2>
+            <div id="cart-container"></div>
             
-            <div class="total-section">
-                <h2>Total:</h2>
-                <div class="amount">$<span id="total-price">0</span></div>
-            </div>
+            <button id="btn-subir" class="btn-submit" onclick="subirBaseDeDatos()" disabled>
+                ☁️ Subir Ventas a Base de Datos
+            </button>
         </div>
     </div>
 
     <div class="bottom-nav">
         <button class="nav-btn" onclick="switchView('scanner')" id="btn-scanner">📷 Escanear</button>
-        <button class="nav-btn active" onclick="switchView('list')" id="btn-list">🛒 Ventas</button>
+        <button class="nav-btn active" onclick="switchView('list')" id="btn-list">📋 Lista Actual</button>
     </div>
 
-    <script>
-        // ESTADO DE LA APLICACIÓN
-        const PRECIO_BASE = 2500;
-        const carrito = {}; // Objeto para guardar los helados y sus cantidades
-        let html5QrcodeScanner = null;
-        let lastScanTime = 0; // Para evitar escaneos dobles accidentales
+    <!-- SCRIPT DE FIREBASE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // NAVEGACIÓN ENTRE PANTALLAS
-        function switchView(viewName) {
+        // ==========================================
+        // 1. AQUÍ VAN TUS CLAVES DE FIREBASE
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
+            authDomain: "helados-0612.firebaseapp.com",
+            projectId: "helados-0612",
+            storageBucket: "helados-0612.firebasestorage.app",
+            messagingSenderId: "683985818004",
+            appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
+            measurementId: "G-BVR8BXKPDR"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Hacer la función de subir global para que el botón HTML la pueda usar
+        window.subirBaseDeDatos = async function() {
+            const btn = document.getElementById('btn-subir');
+            btn.disabled = true;
+            btn.innerText = "⏳ Subiendo...";
+
+            try {
+                // Recorremos los helados escaneados
+                for (const sabor in window.carrito) {
+                    const item = window.carrito[sabor];
+                    if (item.cantidad <= 0) continue; // Ignorar si la cantidad es 0
+
+                    // A) REGISTRAR LA VENTA
+                    await addDoc(collection(db, "ventas"), {
+                        sabor: item.nombre,
+                        cantidad: item.cantidad,
+                        fecha: serverTimestamp()
+                    });
+
+                    // B) DESCONTAR DEL INVENTARIO
+                    // Busca el documento en la colección "inventario" que se llame igual que el sabor
+                    const inventarioRef = doc(db, "inventario", item.nombre);
+                    await updateDoc(inventarioRef, {
+                        // "increment" suma o resta matemáticamente en la nube de forma segura
+                        stock: increment(-item.cantidad) 
+                    });
+                }
+
+                mostrarToast("✅ ¡Datos subidos exitosamente!");
+                window.carrito = {}; // Vaciamos la lista
+                window.actualizarInterfaz();
+                
+            } catch (error) {
+                console.error("Error subiendo datos:", error);
+                alert("Hubo un error. Verifica tu conexión e inténtalo de nuevo.");
+            } finally {
+                btn.innerText = "☁️ Subir Ventas a Base de Datos";
+            }
+        };
+    </script>
+
+    <!-- SCRIPT DE LÓGICA DE LA APP -->
+    <script>
+        // ==========================================
+        // 2. CONFIGURACIÓN DEL SISTEMA
+        // ==========================================
+        const PASSWORD_APP = "10545830"; // <-- Cambia esto por la contraseña que desees
+        window.carrito = {};
+        let html5QrcodeScanner = null;
+        let lastScanTime = 0;
+
+        // SISTEMA DE LOGIN PERSISTENTE
+        window.onload = () => {
+            if (localStorage.getItem("auth") === "true") {
+                document.getElementById("login-screen").style.display = "none";
+            }
+        };
+
+        window.verificarLogin = function() {
+            const input = document.getElementById("pin-input").value;
+            if (input === PASSWORD_APP) {
+                localStorage.setItem("auth", "true"); // Guarda la sesión en el celular
+                document.getElementById("login-screen").style.display = "none";
+            } else {
+                document.getElementById("login-error").style.display = "block";
+            }
+        };
+
+        // GENERADOR DE SONIDO (Pitido BEEP) - ¡No requiere archivo mp3!
+        function playBeep() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                oscillator.type = 'sine'; // Tipo de sonido
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // Tono
+                oscillator.connect(audioCtx.destination);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.15); // Duración: 0.15 segundos
+            } catch(e) { console.log("Audio no soportado"); }
+
+            // Hacer vibrar el celular (si el navegador lo permite)
+            if (navigator.vibrate) navigator.vibrate(100);
+        }
+
+        // NAVEGACIÓN Y ESCÁNER
+        window.switchView = function(viewName) {
             document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-
             document.getElementById(`view-${viewName}`).classList.add('active');
             document.getElementById(`btn-${viewName}`).classList.add('active');
 
-            if (viewName === 'scanner') {
-                startScanner();
-            } else {
-                stopScanner();
-            }
-        }
+            if (viewName === 'scanner') startScanner();
+            else stopScanner();
+        };
 
-        // FUNCIONES DEL ESCÁNER
         function startScanner() {
-            if (!html5QrcodeScanner) {
-                html5QrcodeScanner = new Html5Qrcode("reader");
-            }
-            
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-            
+            if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader");
             html5QrcodeScanner.start(
-                { facingMode: "environment" }, // Usa la cámara trasera
-                config,
-                onScanSuccess,
-                (errorMessage) => { /* Ignorar errores de lectura constantes */ }
-            ).catch(err => {
-                console.error("Error al iniciar cámara", err);
-                alert("Por favor, permite el acceso a la cámara.");
-            });
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (textoDecodificado) => {
+                    const now = Date.now();
+                    if (now - lastScanTime < 2000) return; 
+                    lastScanTime = now;
+
+                    const sabor = textoDecodificado.trim().toLowerCase();
+                    playBeep(); // <--- Hace el pitido y vibra
+
+                    if (window.carrito[sabor]) {
+                        window.carrito[sabor].cantidad++;
+                    } else {
+                        window.carrito[sabor] = { nombre: sabor, cantidad: 1 };
+                    }
+
+                    mostrarToast(`¡Helado de ${sabor} añadido!`);
+                    actualizarInterfaz();
+                },
+                (error) => {}
+            ).catch(err => alert("Da permisos de cámara para escanear."));
         }
 
         function stopScanner() {
             if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
-                html5QrcodeScanner.stop().catch(err => console.error("Error al detener cámara", err));
+                html5QrcodeScanner.stop();
             }
         }
 
-        function onScanSuccess(decodedText) {
-            // Prevenir múltiples escaneos del mismo código en menos de 2 segundos
-            const now = Date.now();
-            if (now - lastScanTime < 2000) return; 
-            lastScanTime = now;
-
-            const sabor = decodedText.trim().toLowerCase();
-
-            // LÓGICA DE AGREGAR AL CARRITO (Cumpliendo tus reglas)
-            if (carrito[sabor]) {
-                carrito[sabor].cantidad++;
-            } else {
-                carrito[sabor] = { 
-                    nombre: sabor, 
-                    cantidad: 1, 
-                    precio: PRECIO_BASE 
-                };
-            }
-
-            mostrarToast(`¡${sabor} escaneado!`);
-            actualizarInterfaz();
-            
-            // Opcional: Cambiar automáticamente a la vista de lista después de escanear
-            // setTimeout(() => switchView('list'), 1000); 
-        }
-
-        // ACTUALIZAR INTERFAZ Y TOTALES
-        function actualizarInterfaz() {
+        window.actualizarInterfaz = function() {
             const contenedor = document.getElementById('cart-container');
+            const btnSubir = document.getElementById('btn-subir');
             contenedor.innerHTML = '';
-            let total = 0;
+            let totalItems = 0;
 
-            // Recorrer el carrito para pintar el HTML
-            for (const [idSabor, item] of Object.entries(carrito)) {
-                // Sumar al total (si la cantidad es 0, suma 0)
-                total += (item.precio * item.cantidad);
-
+            for (const [idSabor, item] of Object.entries(window.carrito)) {
+                if(item.cantidad > 0) totalItems++;
+                
                 const div = document.createElement('div');
                 div.className = 'cart-item';
                 div.innerHTML = `
-                    <div class="item-info">
-                        <h3>Helado de ${item.nombre}</h3>
-                        <p>$${item.precio} c/u</p>
-                    </div>
+                    <div style="font-size: 1.1rem; font-weight:bold; text-transform:capitalize;">${item.nombre}</div>
                     <div class="qty-controls">
                         <button class="btn-qty" onclick="cambiarCantidad('${idSabor}', -1)">-</button>
-                        <span class="qty-display">${item.cantidad}</span>
+                        <span style="font-size:1.2rem; font-weight:bold;">${item.cantidad}</span>
                         <button class="btn-qty" onclick="cambiarCantidad('${idSabor}', 1)">+</button>
                     </div>
                 `;
                 contenedor.appendChild(div);
             }
 
-            document.getElementById('total-price').innerText = total.toLocaleString('es-CO');
-        }
+            // Habilitar o deshabilitar el botón de subir
+            btnSubir.disabled = totalItems === 0;
+            if(totalItems === 0) contenedor.innerHTML = '<p style="text-align:center; color:#888;">Escanea un QR para empezar</p>';
+        };
 
-        function cambiarCantidad(idSabor, cambio) {
-            if (carrito[idSabor]) {
-                carrito[idSabor].cantidad += cambio;
-                
-                // Regla: Si llega a 0 se queda en la lista, pero no puede ser negativo
-                if (carrito[idSabor].cantidad < 0) {
-                    carrito[idSabor].cantidad = 0;
-                }
-                
+        window.cambiarCantidad = function(idSabor, cambio) {
+            if (window.carrito[idSabor]) {
+                window.carrito[idSabor].cantidad += cambio;
+                if (window.carrito[idSabor].cantidad < 0) window.carrito[idSabor].cantidad = 0;
                 actualizarInterfaz();
             }
-        }
+        };
 
-        function mostrarToast(mensaje) {
+        window.mostrarToast = function(mensaje) {
             const toast = document.getElementById('toast');
             toast.innerText = mensaje;
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2000);
-        }
+        };
     </script>
-
-    <script>
-        // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
-  authDomain: "helados-0612.firebaseapp.com",
-  projectId: "helados-0612",
-  storageBucket: "helados-0612.firebasestorage.app",
-  messagingSenderId: "683985818004",
-  appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
-  measurementId: "G-BVR8BXKPDR"
-};
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-    </script>    
 </body>
 </html>
