@@ -11,6 +11,7 @@
             --secondary: #4CAF50;
             --accent: #FF9800;
             --warning: #F44336;
+            --info: #2196F3;
             --bg-color: #F7F9FC;
             --card-bg: #FFFFFF;
             --text-main: #2D3436;
@@ -33,7 +34,7 @@
             padding: 8px 12px; border-radius: 8px; font-weight: bold;
             cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-size: 0.9rem;
         }
-        .btn-header.blue { background: #2196F3; }
+        .btn-header.blue { background: var(--info); }
 
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         .view { display: none; }
@@ -52,20 +53,23 @@
         .qty-controls { display: flex; align-items: center; gap: 15px; }
         .btn-qty { background: #f0f0f0; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
         
-        /* Sección de Fiado e Ingreso */
+        /* Sección de Fiado */
         .fiado-box { background: #fff3e0; padding: 15px; border-radius: var(--border-radius); margin-top: 20px; border: 1px solid #ffe0b2; }
         .fiado-box label { font-weight: bold; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; cursor: pointer;}
-        .fiado-box input[type="checkbox"] { width: 20px; height: 20px; }
         .fiado-box select { width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; font-size: 1.1rem; border: 1px solid #ccc; display: none; }
         
+        /* Controles de Formularios */
         .input-form { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 1.1rem; }
+        .input-group-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .input-group-row select { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1.1rem; }
+        .btn-add-flavor { background: var(--info); color: white; border: none; width: 45px; border-radius: 8px; font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center; }
 
         /* Botones Principales */
         .btn-submit { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; font-size: 1.2rem; font-weight: bold; border-radius: var(--border-radius); margin-top: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);}
         .btn-submit:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
         
         .btn-pay { background: var(--secondary); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;}
-        .btn-warning-icon { background: #FFC107; color: #000; border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem;}
+        .btn-message-icon { background: var(--info); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 1.2rem;}
 
         /* Navegación Inferior */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card-bg); display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
@@ -75,6 +79,17 @@
         .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 20px; border-radius: 50px; opacity: 0; transition: opacity 0.3s; z-index: 100; pointer-events: none;}
         .toast.show { opacity: 1; }
         .toast.error { background: var(--warning); }
+
+        /* Modal Flotante */
+        #modal-nuevo-sabor {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 15px;
+            width: 90%; max-width: 350px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -86,6 +101,19 @@
             <input type="password" id="pin-input" placeholder="Contraseña" inputmode="numeric">
             <button onclick="verificarLogin()">Entrar</button>
             <p id="login-error" style="color:red; margin-top:10px; display:none;">Contraseña incorrecta</p>
+        </div>
+    </div>
+
+    <!-- MODAL NUEVO SABOR -->
+    <div id="modal-nuevo-sabor">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 5px;">Crear Nuevo Sabor</h3>
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 15px;">Asegúrate de escribirlo bien</p>
+            <input type="text" id="input-nuevo-sabor" class="input-form" placeholder="Ej. Parchita" autocomplete="off">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-submit" style="background: #999; margin-top: 0;" onclick="cerrarModalNuevoSabor()">Cancelar</button>
+                <button class="btn-submit" style="background: var(--info); margin-top: 0;" onclick="guardarNuevoSaborBD()">Crear</button>
+            </div>
         </div>
     </div>
 
@@ -133,17 +161,23 @@
             </div>
         </div>
 
-        <!-- VISTA: INGRESO DE INVENTARIO (NUEVA) -->
+        <!-- VISTA: INGRESO DE INVENTARIO -->
         <div id="view-ingreso" class="view">
-            <h2 style="margin-bottom: 15px; color: #2196F3;">🛒 Ingresar al Inventario</h2>
+            <h2 style="margin-bottom: 15px; color: var(--info);">🛒 Ingresar al Inventario</h2>
             <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
-                <p style="margin-bottom: 15px; color: #666;">Añade nuevos sabores o suma cantidad a los que ya existen.</p>
+                <p style="margin-bottom: 15px; color: #666;">Selecciona un sabor existente y suma la cantidad.</p>
                 
-                <input type="text" id="ingreso-sabor" class="input-form" placeholder="Sabor (ej. Coco, Chocolate)" autocomplete="off">
+                <div class="input-group-row">
+                    <select id="select-ingreso-sabor">
+                        <option value="">Cargando sabores...</option>
+                    </select>
+                    <button class="btn-add-flavor" onclick="abrirModalNuevoSabor()" title="Crear nuevo sabor">+</button>
+                </div>
+                
                 <input type="number" id="ingreso-cantidad" class="input-form" placeholder="Cantidad a sumar (ej. 10)" inputmode="numeric">
                 
-                <button class="btn-submit" style="background: #2196F3;" onclick="guardarInventario()">
-                    ➕ Guardar en Inventario
+                <button class="btn-submit" style="background: var(--info);" onclick="guardarInventario()">
+                    ➕ Sumar al Inventario
                 </button>
             </div>
         </div>
@@ -156,7 +190,6 @@
 
     <!-- SCRIPT DE FIREBASE -->
     <script type="module">
-        // Importamos getDoc y setDoc adicionales
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -175,10 +208,9 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        window.db = db; // Exportar db para usar en escaner
+        window.db = db;
 
-        // ===== FUNCIONES DE BASE DE DATOS =====
-
+        // ===== CLIENTES Y DEUDAS =====
         window.cargarClientes = async function() {
             try {
                 const querySnapshot = await getDocs(collection(db, "clientes"));
@@ -187,7 +219,6 @@
                 
                 select.innerHTML = '<option value="">Selecciona el cliente...</option>';
                 contenedorDeudas.innerHTML = '';
-                
                 let hayDeudas = false;
 
                 querySnapshot.forEach((docSnap) => {
@@ -198,7 +229,7 @@
 
                     if (datos.deuda > 0) {
                         hayDeudas = true;
-                        // NUEVO: Agregado el botón de advertencia para WhatsApp ⚠️
+                        // BOTÓN DE MENSAJE AZUL ACTUALIZADO (💬)
                         contenedorDeudas.innerHTML += `
                             <div class="card-item" style="border-left: 5px solid var(--accent);">
                                 <div>
@@ -206,7 +237,7 @@
                                     <div style="color:var(--accent); font-weight:bold;">Debe: $${datos.deuda.toLocaleString('es-CO')}</div>
                                 </div>
                                 <div style="display:flex; gap:8px;">
-                                    <button class="btn-warning-icon" onclick="copiarRecordatorio('${datos.nombre}', ${datos.deuda})" title="Copiar Recordatorio">⚠️</button>
+                                    <button class="btn-message-icon" onclick="copiarRecordatorio('${datos.nombre}', ${datos.deuda})" title="Enviar WhatsApp">💬</button>
                                     <button class="btn-pay" onclick="abonarDeuda('${id}', '${datos.nombre}', ${datos.deuda})">Abonar</button>
                                 </div>
                             </div>
@@ -215,18 +246,13 @@
                 });
 
                 if(!hayDeudas) contenedorDeudas.innerHTML = '<p style="text-align:center; color:#888;">No hay deudas pendientes 🎉</p>';
-
-            } catch (error) {
-                console.error("Error al cargar clientes:", error);
-            }
+            } catch (error) { console.error(error); }
         };
 
         window.abonarDeuda = async function(id, nombre, deudaActual) {
             let monto = prompt(`💰 Deuda actual de ${nombre}: $${deudaActual.toLocaleString('es-CO')}\n¿Cuánto dinero va a abonar/pagar hoy?`, deudaActual);
-            
             if (monto === null || monto.trim() === "") return;
             monto = parseInt(monto.replace(/\./g, ''));
-
             if (isNaN(monto) || monto <= 0) return alert("❌ Monto inválido");
             if (monto > deudaActual) return alert("❌ No puede abonar más dinero del que debe.");
 
@@ -237,97 +263,123 @@
             } catch (error) { alert("Error al procesar el pago."); }
         };
 
-        // NUEVA FUNCIÓN: Agregar Helados al Inventario manualmente
-        window.guardarInventario = async function() {
-            const inputSabor = document.getElementById('ingreso-sabor').value.trim();
-            const inputCantidad = parseInt(document.getElementById('ingreso-cantidad').value);
+        // ===== INVENTARIO: MENÚ DESPLEGABLE Y CREACIÓN =====
+        window.cargarSaboresInventario = async function() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "inventario"));
+                const select = document.getElementById('select-ingreso-sabor');
+                select.innerHTML = '<option value="">Selecciona un sabor...</option>';
+                
+                let sabores = [];
+                querySnapshot.forEach((docSnap) => {
+                    sabores.push({ id: docSnap.id, nombre: docSnap.data().nombre });
+                });
+                
+                // Ordenar alfabéticamente para facilitar la búsqueda
+                sabores.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                
+                sabores.forEach(sabor => {
+                    select.innerHTML += `<option value="${sabor.id}">${sabor.nombre}</option>`;
+                });
+            } catch (error) { console.error(error); }
+        };
 
-            if (inputSabor === "" || isNaN(inputCantidad) || inputCantidad <= 0) {
-                return alert("⚠️ Escribe un sabor válido y una cantidad mayor a 0.");
-            }
+        window.guardarNuevoSaborBD = async function() {
+            const inputSabor = document.getElementById('input-nuevo-sabor').value.trim();
+            if (inputSabor === "") return alert("⚠️ Escribe un nombre para el helado.");
 
-            // Convertimos el ID a minúscula tal cual se lee en el QR
             const saborID = inputSabor.toLowerCase();
-            // Ponemos la primera letra en mayúscula para que se vea bonito en la BD
             const saborBonito = inputSabor.charAt(0).toUpperCase() + inputSabor.slice(1).toLowerCase();
 
             try {
-                // "setDoc" con "merge: true" suma la cantidad si ya existe, o crea el sabor si es nuevo
-                await setDoc(doc(db, "inventario", saborID), {
-                    nombre: saborBonito,
-                    stock: increment(inputCantidad)
-                }, { merge: true });
+                const docRef = doc(db, "inventario", saborID);
+                const docSnap = await getDoc(docRef);
 
-                mostrarToast(`✅ ¡Añadidos ${inputCantidad} de ${saborBonito}!`, false);
+                if (docSnap.exists()) {
+                    alert("⚠️ Ese sabor ya existe en el sistema.");
+                    return;
+                }
+
+                // Creamos el sabor con stock 0
+                await setDoc(docRef, { nombre: saborBonito, stock: 0 });
                 
-                // Limpiar inputs
-                document.getElementById('ingreso-sabor').value = "";
-                document.getElementById('ingreso-cantidad').value = "";
-                switchView('list'); // Volver a la lista
+                mostrarToast(`✅ ¡Sabor ${saborBonito} creado!`, false);
+                cerrarModalNuevoSabor();
+                
+                // Recargamos la lista y seleccionamos el nuevo sabor automáticamente
+                await cargarSaboresInventario();
+                document.getElementById('select-ingreso-sabor').value = saborID;
+                document.getElementById('ingreso-cantidad').focus(); // Ponemos el cursor en cantidad
 
-            } catch (error) {
-                console.error(error);
-                alert("Error guardando el inventario.");
-            }
+            } catch (error) { alert("Error creando el sabor."); }
         };
 
+        window.guardarInventario = async function() {
+            const idSabor = document.getElementById('select-ingreso-sabor').value;
+            const inputCantidad = parseInt(document.getElementById('ingreso-cantidad').value);
+
+            if (idSabor === "") return alert("⚠️ Selecciona un sabor de la lista.");
+            if (isNaN(inputCantidad) || inputCantidad <= 0) return alert("⚠️ Ingresa una cantidad mayor a 0.");
+
+            try {
+                // Solo actualizamos el número de stock del sabor seleccionado
+                await updateDoc(doc(db, "inventario", idSabor), {
+                    stock: increment(inputCantidad)
+                });
+
+                mostrarToast(`✅ ¡Añadidos ${inputCantidad} al inventario!`, false);
+                
+                // Limpiar inputs y volver al inicio
+                document.getElementById('select-ingreso-sabor').value = "";
+                document.getElementById('ingreso-cantidad').value = "";
+                switchView('list');
+
+            } catch (error) { alert("Error guardando el inventario."); }
+        };
+
+        // ===== SUBIR VENTAS =====
         window.subirBaseDeDatos = async function() {
             const btn = document.getElementById('btn-subir');
             const esFiado = document.getElementById('check-fiado').checked;
             const clienteId = document.getElementById('select-cliente').value;
-
             if (esFiado && clienteId === "") return alert("⚠️ Selecciona un cliente para fiarle.");
-
             btn.disabled = true; btn.innerText = "⏳ Subiendo...";
 
             try {
                 let totalVentaDinero = 0;
-
                 for (const sabor in window.carrito) {
                     const item = window.carrito[sabor];
                     if (item.cantidad <= 0) continue;
-
                     totalVentaDinero += (item.cantidad * item.precio);
 
                     await addDoc(collection(db, "ventas"), {
                         sabor: item.nombre, cantidad: item.cantidad,
-                        tipo: esFiado ? "fiado" : "contado",
-                        cliente: esFiado ? clienteId : "ninguno",
+                        tipo: esFiado ? "fiado" : "contado", cliente: esFiado ? clienteId : "ninguno",
                         fecha: serverTimestamp()
                     });
-
                     await updateDoc(doc(db, "inventario", item.nombre), { stock: increment(-item.cantidad) });
                 }
 
-                if (esFiado) {
-                    await updateDoc(doc(db, "clientes", clienteId), { deuda: increment(totalVentaDinero) });
-                }
+                if (esFiado) await updateDoc(doc(db, "clientes", clienteId), { deuda: increment(totalVentaDinero) });
 
                 mostrarToast(esFiado ? "✅ Fiado guardado exitosamente" : "✅ Venta subida exitosamente", false);
-                
-                window.carrito = {}; 
-                document.getElementById('check-fiado').checked = false;
+                window.carrito = {}; document.getElementById('check-fiado').checked = false;
                 toggleFiado(); window.actualizarInterfaz(); window.cargarClientes(); 
                 
-            } catch (error) {
-                alert("Hubo un error subiendo los datos.");
-            } finally {
-                btn.innerText = "☁️ Subir Ventas a Base de Datos";
-            }
+            } catch (error) { alert("Hubo un error subiendo los datos."); } 
+            finally { btn.innerText = "☁️ Subir Ventas a Base de Datos"; }
         };
 
-        // EXPORTAR FIREBASE PARA EL ESCÁNER
-        window.getDoc = getDoc;
-        window.doc = doc;
+        window.getDoc = getDoc; window.doc = doc;
     </script>
 
     <!-- SCRIPT DE LÓGICA DE LA APP Y UI -->
     <script>
-        const PASSWORD_APP = "1234";
+        const PASSWORD_APP = "10545830";
         const PRECIO_BASE = 2500;
         window.carrito = {};
         let html5QrcodeScanner = null;
-        let isProcessingScan = false; // Evitar escaneos dobles rápidos
+        let isProcessingScan = false;
 
         window.onload = () => {
             if (localStorage.getItem("auth") === "true") {
@@ -353,16 +405,24 @@
             if(!isChecked) select.value = "";
         };
 
-        // NUEVA FUNCIÓN: Copiar Recordatorio de Whatsapp
+        // Lógica Modal Nuevo Sabor
+        window.abrirModalNuevoSabor = function() {
+            document.getElementById('modal-nuevo-sabor').style.display = 'flex';
+            document.getElementById('input-nuevo-sabor').value = ''; // Limpiar campo
+            document.getElementById('input-nuevo-sabor').focus();
+        };
+        window.cerrarModalNuevoSabor = function() {
+            document.getElementById('modal-nuevo-sabor').style.display = 'none';
+        };
+
+        // Copiar Recordatorio de Whatsapp
         window.copiarRecordatorio = function(nombre, deuda) {
             const numHelados = Math.floor(deuda / PRECIO_BASE);
-            const mensaje = `Hola ${nombre}, ¿cómo estás? Te escribo para recordarte que tienes ${numHelados} heladitos pendientes por ahí (son $${deuda.toLocaleString('es-CO')}). Cuando puedas me haces el paguito 🙏. ¡Gracias y bendiciones!`;
+            const mensaje = `Hola ${nombre}, ¿cómo estás? Te escribo para recordarte que tienes ${numHelados} heladitos pendientes por ahí (son $${deuda.toLocaleString('es-CO')}). Cuando puedas me haces el pago 🙏, gracias`;
             
             navigator.clipboard.writeText(mensaje).then(() => {
                 mostrarToast(`✅ Mensaje para ${nombre} copiado`, false);
-            }).catch(err => {
-                alert("No se pudo copiar el mensaje. Dale permisos al navegador.");
-            });
+            }).catch(err => alert("No se pudo copiar el mensaje. Dale permisos al navegador."));
         };
 
         function playBeep() {
@@ -374,9 +434,7 @@
             } catch(e) {}
             if (navigator.vibrate) navigator.vibrate(100);
         }
-        function playErrorBeep() {
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        }
+        function playErrorBeep() { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); }
 
         window.switchView = function(viewName) {
             document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
@@ -391,6 +449,9 @@
             else stopScanner();
 
             if (viewName === 'deudas' && window.cargarClientes) window.cargarClientes();
+            
+            // Si entra a la vista de Ingresar, actualizar la lista de sabores
+            if (viewName === 'ingreso' && window.cargarSaboresInventario) window.cargarSaboresInventario();
         };
 
         function startScanner() {
@@ -405,50 +466,32 @@
                     const cantidadEnCarrito = window.carrito[sabor] ? window.carrito[sabor].cantidad : 0;
 
                     try {
-                        // VERIFICAR INVENTARIO EN FIREBASE EN TIEMPO REAL
                         const docRef = window.doc(window.db, "inventario", sabor);
                         const docSnap = await window.getDoc(docRef);
 
                         if (docSnap.exists()) {
                             const stockActual = docSnap.data().stock;
-
                             if (stockActual > cantidadEnCarrito) {
-                                // Sí hay inventario
                                 playBeep();
-                                if (window.carrito[sabor]) {
-                                    window.carrito[sabor].cantidad++;
-                                } else {
-                                    // Guardamos el maxStock para que no puedan pasarse usando el botón "+"
-                                    window.carrito[sabor] = { nombre: sabor, cantidad: 1, precio: PRECIO_BASE, maxStock: stockActual };
-                                }
+                                if (window.carrito[sabor]) window.carrito[sabor].cantidad++;
+                                else window.carrito[sabor] = { nombre: sabor, cantidad: 1, precio: PRECIO_BASE, maxStock: stockActual };
                                 mostrarToast(`¡Helado de ${sabor} añadido!`, false);
                                 actualizarInterfaz();
                             } else {
-                                // No hay suficiente inventario
-                                playErrorBeep();
-                                mostrarToast(`❌ Helado de ${sabor} sin inventario`, true);
+                                playErrorBeep(); mostrarToast(`❌ Helado de ${sabor} sin inventario`, true);
                             }
                         } else {
-                            // El helado no existe en Firebase
-                            playErrorBeep();
-                            mostrarToast("❌ Helado no registrado en sistema", true);
+                            playErrorBeep(); mostrarToast("❌ Helado no registrado en sistema", true);
                         }
-                    } catch (err) {
-                        mostrarToast("⚠️ Error verificando inventario", true);
-                    }
+                    } catch (err) { mostrarToast("⚠️ Error verificando inventario", true); }
 
-                    // Esperar 1.5 seg antes de permitir otro escaneo para no saturar la base de datos
                     setTimeout(() => { isProcessingScan = false; }, 1500); 
                 },
                 (error) => {}
             ).catch(err => alert("Da permisos de cámara para escanear."));
         }
 
-        function stopScanner() {
-            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
-                html5QrcodeScanner.stop();
-            }
-        }
+        function stopScanner() { if (html5QrcodeScanner && html5QrcodeScanner.isScanning) html5QrcodeScanner.stop(); }
 
         window.actualizarInterfaz = function() {
             const contenedor = document.getElementById('cart-container');
@@ -458,17 +501,14 @@
 
             for (const [idSabor, item] of Object.entries(window.carrito)) {
                 if(item.cantidad > 0) totalItems++;
-                
-                const div = document.createElement('div');
-                div.className = 'card-item';
+                const div = document.createElement('div'); div.className = 'card-item';
                 div.innerHTML = `
                     <div style="font-size: 1.1rem; font-weight:bold; text-transform:capitalize;">${item.nombre}</div>
                     <div class="qty-controls">
                         <button class="btn-qty" onclick="cambiarCantidad('${idSabor}', -1)">-</button>
                         <span style="font-size:1.2rem; font-weight:bold;">${item.cantidad}</span>
                         <button class="btn-qty" onclick="cambiarCantidad('${idSabor}', 1)">+</button>
-                    </div>
-                `;
+                    </div>`;
                 contenedor.appendChild(div);
             }
 
@@ -479,13 +519,9 @@
         window.cambiarCantidad = function(idSabor, cambio) {
             if (window.carrito[idSabor]) {
                 const nuevaCantidad = window.carrito[idSabor].cantidad + cambio;
-                
-                // Evitar que aumenten más del stock que hay en base de datos usando el botón "+"
                 if (nuevaCantidad > window.carrito[idSabor].maxStock) {
-                    mostrarToast("❌ No hay más inventario", true);
-                    return;
+                    mostrarToast("❌ No hay más inventario", true); return;
                 }
-                
                 window.carrito[idSabor].cantidad = nuevaCantidad;
                 if (window.carrito[idSabor].cantidad < 0) window.carrito[idSabor].cantidad = 0;
                 actualizarInterfaz();
@@ -495,9 +531,7 @@
         window.mostrarToast = function(mensaje, isError = false) {
             const toast = document.getElementById('toast');
             toast.innerText = mensaje;
-            if (isError) toast.classList.add('error');
-            else toast.classList.remove('error');
-            
+            if (isError) toast.classList.add('error'); else toast.classList.remove('error');
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2000);
         };
