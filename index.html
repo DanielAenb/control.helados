@@ -3,559 +3,665 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App de Helados con Firebase</title>
+    <title>Control de Helados - Multivariante</title>
+    <!-- Librería para escanear códigos QR -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        /* --- ESTILOS GENERALES --- */
+        /* ==========================================
+           VARIABLES GLOBALES Y CONFIGURACIÓN BASE
+           ========================================== */
         :root {
-            --primary: #f04a22; 
-            --bg-color: #f5f6fa;
-            --text-color: #2f3640;
-            --card-bg: #ffffff;
-            --red-alert: #e84118;
-            --yellow-alert: #fbc531;
+            --primary: #2E7D32;
+            --secondary: #4CAF50;
+            --accent: #FF9800;
+            --warning: #F44336;
+            --info: #2196F3;
+            --bg-color: #F7F9FC;
+            --card-bg: #FFFFFF;
+            --text-main: #2D3436;
+            --border-radius: 12px;
+            
+            /* Variable global para el tamaño de las fuentes (fácil de ajustar) */
+            --font-size-base: 0.95rem;
+            --font-size-small: 0.85rem;
         }
 
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; font-size: var(--font-size-base); }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 110px; }
 
-        .app-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            padding-bottom: 100px;
+        /* HEADER SUPERIOR LIMPIO */
+        header { 
+            background-color: var(--card-bg); padding: 15px; text-align: center; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 10;
         }
+        h1 { color: var(--primary); font-size: 1.3rem; margin: 0; font-weight: 700; }
 
-        .screen { display: none; }
-        .screen.active { display: block; }
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
+        .view { display: none; }
+        .view.active { display: block; }
 
-        h1, h2 { margin-top: 0; }
+        /* Títulos de sección uniformes */
+        h2 { font-size: 1.15rem; font-weight: 600; margin-bottom: 12px; color: var(--text-main); }
 
-        /* --- MENSAJES TOAST (2 segundos exactos) --- */
-        #toast {
-            visibility: hidden;
-            min-width: 250px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 8px;
-            padding: 12px;
-            position: fixed;
-            z-index: 1000;
-            left: 50%;
-            bottom: 100px;
-            transform: translateX(-50%);
-            font-size: 14px;
-            opacity: 0;
-            transition: opacity 0.3s, bottom 0.3s;
-        }
-        #toast.show {
-            visibility: visible;
-            opacity: 1;
-            bottom: 120px;
-        }
+        /* PANTALLA DE LOGIN */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .login-box { background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 320px;}
+        .login-box input { padding: 10px; margin: 15px 0; width: 100%; font-size: 1.1rem; text-align: center; border: 1px solid #ccc; border-radius: 8px;}
+        .login-box button { background: var(--primary); color: white; border: none; padding: 12px 20px; font-size: 1rem; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;}
 
-        /* --- BARRA DE NAVEGACIÓN TIPO PÍLDORA --- */
-        .bottom-nav-wrapper {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            max-width: 400px;
-            background: var(--card-bg);
-            border-radius: 50px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            display: flex;
-            padding: 5px;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-        }
-
-        .nav-item {
-            flex: 1;
-            text-align: center;
-            padding: 12px 0;
-            font-size: 14px;
-            color: #7f8fa6;
-            cursor: pointer;
-            border-radius: 50px;
-            transition: all 0.3s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .nav-item.active {
-            background-color: var(--primary);
-            color: white;
-            font-weight: bold;
-            flex: 1.2; 
-        }
-
-        /* --- COMPONENTES DE LA INTERFAZ --- */
-        .card {
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .stock-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-left: 10px;
-        }
-        .indicator.red { background-color: var(--red-alert); }
-        .indicator.yellow { background-color: var(--yellow-alert); }
-        .indicator.transparent { background-color: transparent; }
-
-        .btn-fab {
-            position: fixed;
-            bottom: 100px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            background-color: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 30px;
-            box-shadow: 0 6px 12px rgba(240, 74, 34, 0.4);
-            cursor: pointer;
-            border: none;
-            z-index: 90;
-        }
-
-        .venta-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
-        }
-        .venta-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-        }
-        .contador {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .btn-count {
-            background: #eee;
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 5px;
-            font-size: 18px;
-            cursor: pointer;
-        }
+        /* COMPONENTES Y TARJETAS */
+        #reader { width: 100%; border-radius: var(--border-radius); overflow: hidden; background: #000; margin-bottom: 15px;}
+        .card-item { background: var(--card-bg); padding: 14px 16px; margin-bottom: 10px; border-radius: var(--border-radius); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.04);}
         
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #dcdde1;
-            border-radius: 8px;
-            box-sizing: border-box;
+        .qty-controls { display: flex; align-items: center; gap: 12px; }
+        .btn-qty { background: #f0f0f0; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;}
+        
+        /* CAJA DE FIADO */
+        .fiado-box { background: #fff3e0; padding: 15px; border-radius: var(--border-radius); margin-top: 20px; border: 1px solid #ffe0b2; }
+        .fiado-box label { font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer;}
+        .fiado-box select { width: 100%; padding: 10px; margin-top: 12px; border-radius: 8px; border: 1px solid #ccc; display: none; background: white;}
+        
+        /* FORMULARIOS E INPUTS */
+        .input-form { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #ccc; background: white; }
+        .input-group-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .input-group-row select { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; background: white; }
+        .btn-add-flavor { background: var(--info); color: white; border: none; width: 45px; border-radius: 8px; font-size: 1.4rem; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+
+        /* BOTONES PRINCIPALES UNIFORMES */
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 14px; width: 100%; font-weight: bold; border-radius: var(--border-radius); margin-top: 10px; cursor: pointer; box-shadow: 0 3px 8px rgba(46, 125, 50, 0.25);}
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+        
+        .btn-pay { background: var(--secondary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer;}
+        .btn-message-icon { background: var(--info); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 1.1rem;}
+
+        /* ==========================================
+           BARRA DE NAVEGACIÓN INFERIOR (ESTILO PÍLDORA)
+           ========================================== */
+        .bottom-nav-container {
+            position: fixed; bottom: 20px; left: 0; width: 100%;
+            display: flex; justify-content: center; z-index: 100; pointer-events: none;
         }
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            margin-top: 15px;
+        .bottom-nav {
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            display: flex; padding: 6px; border-radius: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12); border: 1px solid rgba(0,0,0,0.04);
+            pointer-events: auto; max-width: 95%; overflow-x: auto;
         }
-        .checkbox-group {
-            margin: 15px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        .nav-btn {
+            padding: 10px 16px; border: none; background: none; font-weight: 600;
+            color: #777; cursor: pointer; border-radius: 30px; transition: all 0.2s ease;
+            white-space: nowrap; font-size: var(--font-size-small);
         }
-        #loading {
-            text-align: center;
-            color: #7f8fa6;
-            display: none;
+        .nav-btn.active {
+            background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
         }
+
+        /* TOAST DE NOTIFICACIONES */
+        .toast { position: fixed; top: 75px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 20px; border-radius: 50px; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none; font-weight: 500; box-shadow: 0 4px 12px rgba(0,0,0,0.15);}
+        .toast.show { opacity: 1; }
+        .toast.error { background: var(--warning); }
+
+        /* MODAL FLOTANTE PARA NUEVO SABOR */
+        #modal-nuevo-sabor {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1100;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: white; padding: 22px; border-radius: 16px;
+            width: 90%; max-width: 330px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        .modal-content p { color: #666; font-size: var(--font-size-small); margin-bottom: 12px; }
     </style>
 </head>
 <body>
 
-    <div id="toast">Acción realizada con éxito</div>
-
-    <div class="app-container">
-        
-        <!-- PANTALLA: ESCANEO -->
-        <main id="screen-escaneo" class="screen active">
-            <h2>Escáner</h2>
-            <div class="card" style="text-align: center; padding: 40px 20px;">
-                <p>Simulador de escaneo.</p>
-                <p style="font-size: 12px; color: gray;">(Asegúrate de crear 'BatiBati' o 'Flips' en Stock primero)</p>
-                <button class="btn-primary" onclick="window.simularEscaneo('BatiBati')">Simular Escaneo BatiBati</button>
-                <button class="btn-primary" style="background-color: #2f3640;" onclick="window.simularEscaneo('Flips')">Simular Escaneo Flips</button>
-            </div>
-        </main>
-
-        <!-- PANTALLA: VENTA -->
-        <main id="screen-venta" class="screen">
-            <h2>Venta Actual</h2>
-            <div id="lista-ventas">
-                <p style="text-align: center; color: #7f8fa6;">No hay helados escaneados.</p>
-            </div>
-        </main>
-
-        <!-- PANTALLA: STOCK -->
-        <main id="screen-stock" class="screen">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h2>Inventario</h2>
-                <button onclick="window.cargarSabores()" style="background:none; border:none; color: var(--primary); font-size:20px; cursor:pointer;">🔄</button>
-            </div>
-            
-            <div id="loading">Cargando base de datos...</div>
-            <div id="lista-stock"></div>
-            
-            <button class="btn-fab" onclick="window.navegarA('screen-crear')">+</button>
-        </main>
-
-        <!-- PANTALLA: DEUDAS -->
-        <main id="screen-deudas" class="screen">
-            <h2>Deudas</h2>
-            <div class="card"><p>Pantalla en construcción...</p></div>
-        </main>
-
-        <!-- PANTALLA SECUNDARIA: CREAR SABOR -->
-        <main id="screen-crear" class="screen">
-            <h2>Crear Sabor (Firebase)</h2>
-            <div class="card">
-                <label>Nombre del Sabor:</label>
-                <input type="text" id="nuevo-nombre" placeholder="Ej. BatiBati">
-                
-                <label>Selecciona los precios disponibles (Stock inicial: 5):</label>
-                <div class="checkbox-group">
-                    <label><input type="checkbox" id="check-1000" onchange="window.validarCheckboxes()"> Variante 1000</label>
-                    <label><input type="checkbox" id="check-2500" onchange="window.validarCheckboxes()"> Variante 2500</label>
-                    <label><input type="checkbox" id="check-3500" onchange="window.validarCheckboxes()"> Variante 3500 (Único)</label>
-                </div>
-
-                <button class="btn-primary" onclick="window.guardarSaborBD()">Guardar en Firebase</button>
-                <button class="btn-primary" style="background-color: #7f8fa6;" onclick="window.navegarA('screen-stock')">Cancelar</button>
-            </div>
-        </main>
+    <!-- PANTALLA DE ACCESO -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>🔒 Acceso Restringido</h2>
+            <input type="password" id="pin-input" placeholder="Contraseña" inputmode="numeric">
+            <button onclick="verificarLogin()">Entrar</button>
+            <p id="login-error" style="color:var(--warning); margin-top:10px; display:none; font-size: var(--font-size-small);">Contraseña incorrecta</p>
+        </div>
     </div>
 
-    <!-- BARRA DE NAVEGACIÓN -->
-    <nav class="bottom-nav-wrapper">
-        <div class="nav-item active" onclick="window.cambiarTab('screen-escaneo', this)"><span>📷</span> Escaneo</div>
-        <div class="nav-item" onclick="window.cambiarTab('screen-venta', this)"><span>🛒</span> Venta</div>
-        <div class="nav-item" onclick="window.cambiarTab('screen-stock', this)"><span>📦</span> Stock</div>
-        <div class="nav-item" onclick="window.cambiarTab('screen-deudas', this)"><span>📒</span> Deudas</div>
-    </nav>
+    <!-- MODAL PARA CREAR NUEVO SABOR -->
+    <div id="modal-nuevo-sabor">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 5px; font-size: 1.1rem;">Crear Nuevo Sabor Base</h3>
+            <p>Escribe el nombre general del sabor (Ej. Fresa, ChocoMenta)</p>
+            <input type="text" id="input-nuevo-sabor" class="input-form" placeholder="Nombre del sabor" autocomplete="off">
+            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                <button class="btn-submit" style="background: #999; margin-top: 0;" onclick="cerrarModalNuevoSabor()">Cancelar</button>
+                <button class="btn-submit" style="background: var(--info); margin-top: 0;" onclick="guardarNuevoSaborBD()">Crear</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- IMPORTANTE: type="module" para Firebase v10 -->
+    <!-- ENCABEZADO FIJO -->
+    <header>
+        <h1>Control de Helados 🍦</h1>
+    </header>
+
+    <div id="toast" class="toast">Mensaje</div>
+
+    <div class="container">
+        
+        <!-- VISTA 1: LISTA ACTUAL DE VENTA -->
+        <div id="view-list" class="view active">
+            <h2>Helados a Registrar</h2>
+            <div id="cart-container">
+                <p style="text-align:center; color:#888; padding: 20px;">Cargando carrito...</p>
+            </div>
+            
+            <!-- CAJA DE FIADO -->
+            <div class="fiado-box">
+                <label>
+                    <input type="checkbox" id="check-fiado" onchange="toggleFiado()">
+                    📝 Vender como Fiado
+                </label>
+                <select id="select-cliente">
+                    <option value="">Selecciona el cliente...</option>
+                </select>
+            </div>
+
+            <button id="btn-subir" class="btn-submit" onclick="subirBaseDeDatos()" disabled>
+                ☁️ Subir Ventas a Base de Datos
+            </button>
+        </div>
+
+        <!-- VISTA 2: ESCANEAR QR -->
+        <div id="view-scanner" class="view">
+            <h2>Escanear QR de Helado</h2>
+            <div id="reader"></div>
+            <p style="text-align: center; color: #666; font-size: var(--font-size-small);">Apunta la cámara al código QR del helado para sumarlo automáticamente a la lista.</p>
+        </div>
+
+        <!-- VISTA 3: DISPONIBILIDAD EN STOCK -->
+        <div id="view-stock" class="view">
+            <h2>Disponibilidad en Stock</h2>
+            <p style="color: #666; margin-bottom: 15px; font-size: var(--font-size-small);">Inventario actual desglosado por precio y sabor.</p>
+            <div id="stock-container">
+                <p style="text-align:center; color:#888;">Cargando inventario...</p>
+            </div>
+        </div>
+
+        <!-- VISTA 4: INGRESAR AL INVENTARIO -->
+        <div id="view-ingreso" class="view">
+            <h2>🛒 Ingresar al Inventario</h2>
+            <div style="background: white; padding: 20px; border-radius: var(--border-radius); box-shadow: 0 2px 5px rgba(0,0,0,0.04);">
+                <p style="margin-bottom: 12px; color: #666; font-size: var(--font-size-small);">Selecciona el sabor, el precio de venta y suma la cantidad.</p>
+                
+                <label style="font-weight: 600; font-size: var(--font-size-small);">Sabor:</label>
+                <div class="input-group-row" style="margin-top: 5px;">
+                    <select id="select-ingreso-sabor">
+                        <option value="">Cargando sabores...</option>
+                    </select>
+                    <button class="btn-add-flavor" onclick="abrirModalNuevoSabor()" title="Crear nuevo sabor">+</button>
+                </div>
+                
+                <label style="font-weight: 600; font-size: var(--font-size-small);">Variante de Precio:</label>
+                <select id="select-ingreso-precio" class="input-form" style="margin-top: 5px;">
+                    <option value="1000">$1.000</option>
+                    <option value="2500" selected>$2.500</option>
+                    <option value="3500">$3.500</option>
+                </select>
+
+                <label style="font-weight: 600; font-size: var(--font-size-small);">Cantidad a sumar:</label>
+                <input type="number" id="ingreso-cantidad" class="input-form" style="margin-top: 5px;" placeholder="Ej. 10" inputmode="numeric">
+                
+                <button class="btn-submit" style="background: var(--info);" onclick="guardarInventario()">
+                    ➕ Sumar al Inventario
+                </button>
+            </div>
+        </div>
+
+        <!-- VISTA 5: LIBRETA DE DEUDAS -->
+        <div id="view-deudas" class="view">
+            <h2 style="color: var(--accent);">Libreta de Deudas</h2>
+            <div id="deudas-container">
+                <p style="text-align:center; color:#888;">Cargando clientes...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BARRA DE NAVEGACIÓN INFERIOR (ESTILO PÍLDORA) -->
+    <div class="bottom-nav-container">
+        <nav class="bottom-nav">
+            <button class="nav-btn active" onclick="switchView('list')" id="btn-list">Lista</button>
+            <button class="nav-btn" onclick="switchView('scanner')" id="btn-scanner">Escanear</button>
+            <button class="nav-btn" onclick="switchView('stock')" id="btn-stock">Stock</button>
+            <button class="nav-btn" onclick="switchView('ingreso')" id="btn-ingreso">Llenar</button>
+            <button class="nav-btn" onclick="switchView('deudas')" id="btn-deudas">Deudas</button>
+        </nav>
+    </div>
+
+    <!-- SCRIPT DE FIREBASE Y LÓGICA DE DATOS -->
     <script type="module">
-        // Importar Firebase base y Firestore
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // ==========================================
-        // 1. CONFIGURACIÓN DE FIREBASE (PEGA TUS CLAVES AQUÍ)
+        // CONFIGURACIÓN DE FIREBASE (Inserta tus credenciales aquí)
         // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
             authDomain: "helados-0612.firebaseapp.com",
             projectId: "helados-0612",
             storageBucket: "helados-0612.firebasestorage.app",
-             messagingSenderId: "683985818004",
-             appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
-             measurementId: "G-BVR8BXKPDR"
+            messagingSenderId: "683985818004",
+            appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
+        measurementId: "G-BVR8BXKPDR"
 };
 
-        // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        window.db = db;
 
-        // Variables Globales de la App
-        window.dbSaboresLocal = [];
-        window.carritoVenta = [];
+        // Estructura del carrito global: { "fresa_2500": { sabor: "Fresa", precio: 2500, cantidad: 2, maxStock: 10 } }
+        window.carrito = {};
 
-        // ==========================================
-        // 2. FUNCIONES DE FIREBASE
-        // ==========================================
-        
-        // Leer datos de Firestore
-        window.cargarSabores = async function() {
-            const loading = document.getElementById("loading");
-            loading.style.display = "block";
-            window.dbSaboresLocal = [];
-            
+        // ===== CARGAR CLIENTES Y DEUDAS =====
+        window.cargarClientes = async function() {
             try {
-                // Llama a la colección "sabores"
-                const querySnapshot = await getDocs(collection(db, "sabores"));
+                const querySnapshot = await getDocs(collection(db, "clientes"));
+                const select = document.getElementById('select-cliente');
+                const contenedorDeudas = document.getElementById('deudas-container');
                 
-                querySnapshot.forEach((doc) => {
-                    // Guardamos los datos localmente incluyendo el ID del documento
-                    window.dbSaboresLocal.push({ id: doc.id, ...doc.data() });
-                });
-                
-                window.renderizarStock();
-                window.mostrarToast("Datos cargados correctamente");
-            } catch (error) {
-                console.error("Error leyendo Firebase:", error);
-                window.mostrarToast("Error de conexión");
-            } finally {
-                loading.style.display = "none";
-            }
-        };
+                select.innerHTML = '<option value="">Selecciona el cliente...</option>';
+                contenedorDeudas.innerHTML = '';
+                let hayDeudas = false;
 
-        // Guardar nuevo documento en Firestore
-        window.guardarSaborBD = async function() {
-            const nombre = document.getElementById("nuevo-nombre").value;
-            const c1000 = document.getElementById("check-1000").checked;
-            const c2500 = document.getElementById("check-2500").checked;
-            const c3500 = document.getElementById("check-3500").checked;
+                querySnapshot.forEach((docSnap) => {
+                    const id = docSnap.id;
+                    const datos = docSnap.data();
+                    
+                    select.innerHTML += `<option value="${id}">${datos.nombre}</option>`;
 
-            if(!nombre) return window.mostrarToast("Ingresa un nombre");
-
-            let nuevasVariantes = [];
-            // Para el ejemplo, al crear un sabor nuevo le pondré stock 5 y 1 (para probar las alertas)
-            if (c1000) nuevasVariantes.push({ precio: 1000, stock: 1 }); // Generará alerta amarilla
-            if (c2500) nuevasVariantes.push({ precio: 2500, stock: 5 }); 
-            if (c3500) nuevasVariantes.push({ precio: 3500, stock: 0 }); // Generará alerta roja
-
-            if(nuevasVariantes.length === 0) return window.mostrarToast("Selecciona un precio");
-
-            window.mostrarToast("Guardando en la nube...");
-
-            try {
-                // Guarda en la colección "sabores"
-                await addDoc(collection(db, "sabores"), {
-                    nombre: nombre,
-                    variantes: nuevasVariantes
-                });
-                
-                // Limpiar form
-                document.getElementById("nuevo-nombre").value = "";
-                document.getElementById("check-1000").checked = false;
-                document.getElementById("check-2500").checked = false;
-                document.getElementById("check-3500").checked = false;
-                window.validarCheckboxes();
-
-                window.navegarA('screen-stock');
-                window.cargarSabores(); // Recargar datos de la nube
-            } catch (e) {
-                console.error("Error al añadir documento: ", e);
-                window.mostrarToast("Error al guardar");
-            }
-        };
-
-        // ==========================================
-        // 3. LÓGICA DE INTERFAZ (UI)
-        // ==========================================
-        
-        window.mostrarToast = function(mensaje) {
-            const toast = document.getElementById("toast");
-            toast.innerText = mensaje;
-            toast.className = "show";
-            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2000);
-        };
-
-        window.cambiarTab = function(pantallaId, elementoClick) {
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            elementoClick.classList.add('active');
-            window.navegarA(pantallaId);
-        };
-
-        window.navegarA = function(pantallaId) {
-            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-            document.getElementById(pantallaId).classList.add('active');
-
-            if(pantallaId === 'screen-stock' && window.dbSaboresLocal.length === 0) {
-                window.cargarSabores(); // Cargar la primera vez que entra a stock
-            } else if(pantallaId === 'screen-stock') {
-                window.renderizarStock();
-            }
-            if(pantallaId === 'screen-venta') window.renderizarVenta();
-        };
-
-        window.renderizarStock = function() {
-            const contenedor = document.getElementById("lista-stock");
-            contenedor.innerHTML = "";
-
-            if(window.dbSaboresLocal.length === 0) {
-                contenedor.innerHTML = "<p style='text-align:center;'>No hay sabores en la base de datos.</p>";
-                return;
-            }
-
-            window.dbSaboresLocal.forEach(sabor => {
-                let colorIndicador = "transparent";
-                const sinStock = sabor.variantes.some(v => v.stock === 0);
-                const stockBajo = sabor.variantes.some(v => v.stock > 0 && v.stock < 3);
-
-                if (sinStock) colorIndicador = "red";
-                else if (stockBajo) colorIndicador = "yellow";
-
-                let htmlPrecios = sabor.variantes.map(v => `$${v.precio} (Cant: ${v.stock})`).join(" | ");
-
-                const div = document.createElement("div");
-                div.className = "card stock-item";
-                div.innerHTML = `
-                    <div>
-                        <strong>${sabor.nombre}</strong><br>
-                        <small style="color: gray;">${htmlPrecios}</small>
-                    </div>
-                    <div class="indicator ${colorIndicador}"></div>
-                `;
-                contenedor.appendChild(div);
-            });
-        };
-
-        window.validarCheckboxes = function() {
-            const c1000 = document.getElementById("check-1000");
-            const c2500 = document.getElementById("check-2500");
-            const c3500 = document.getElementById("check-3500");
-
-            if (c3500.checked) {
-                c1000.checked = false; c2500.checked = false;
-                c1000.disabled = true; c2500.disabled = true;
-            } else {
-                c1000.disabled = false; c2500.disabled = false;
-                if (c1000.checked || c2500.checked) c3500.disabled = true;
-                else c3500.disabled = false;
-            }
-        };
-
-        // --- LÓGICA DE VENTAS ---
-        window.simularEscaneo = function(nombreBuscado) {
-            // Busca en la copia local descargada de Firebase
-            const productoBase = window.dbSaboresLocal.find(s => s.nombre.toLowerCase() === nombreBuscado.toLowerCase());
-            
-            if (productoBase) {
-                let itemCarrito = JSON.parse(JSON.stringify(productoBase));
-                itemCarrito.variantes.forEach(v => {
-                    v.cantidad_pedida = 0;
-                    v.seleccionado = false;
-                });
-                window.carritoVenta.push(itemCarrito);
-                window.mostrarToast(`Escaneado: ${productoBase.nombre}`);
-            } else {
-                window.mostrarToast(`No existe en Firebase. Créalo primero en Stock.`);
-            }
-        };
-
-        window.actualizarCantidad = function(itemIndex, varianteIndex, operacion) {
-            let variante = window.carritoVenta[itemIndex].variantes[varianteIndex];
-            if (operacion === '+' && variante.cantidad_pedida < variante.stock) {
-                variante.cantidad_pedida++;
-                variante.seleccionado = true;
-            } else if (operacion === '-' && variante.cantidad_pedida > 0) {
-                variante.cantidad_pedida--;
-                if(variante.cantidad_pedida === 0) variante.seleccionado = false;
-            } else if (operacion === '+' && variante.cantidad_pedida >= variante.stock) {
-                window.mostrarToast("Stock insuficiente");
-            }
-            window.renderizarVenta();
-        };
-
-        window.toggleCheck = function(itemIndex, varianteIndex) {
-            let variante = window.carritoVenta[itemIndex].variantes[varianteIndex];
-            variante.seleccionado = !variante.seleccionado;
-            if(variante.seleccionado && variante.cantidad_pedida === 0) {
-                if(variante.stock > 0) variante.cantidad_pedida = 1;
-                else {
-                    window.mostrarToast("No hay stock");
-                    variante.seleccionado = false;
-                }
-            } else if (!variante.seleccionado) {
-                variante.cantidad_pedida = 0;
-            }
-            window.renderizarVenta();
-        };
-
-        window.renderizarVenta = function() {
-            const contenedor = document.getElementById("lista-ventas");
-            contenedor.innerHTML = "";
-
-            if (window.carritoVenta.length === 0) {
-                contenedor.innerHTML = '<p style="text-align: center;">No hay helados escaneados.</p>';
-                return;
-            }
-
-            window.carritoVenta.forEach((item, itemIndex) => {
-                const div = document.createElement("div");
-                div.className = "card";
-
-                if (item.variantes.length === 1) {
-                    let v = item.variantes[0];
-                    div.innerHTML = `
-                        <div class="venta-header">
-                            <span>${item.nombre}</span>
-                            <div class="contador">
-                                <button class="btn-count" onclick="window.actualizarCantidad(${itemIndex}, 0, '-')">-</button>
-                                <span>${v.cantidad_pedida}</span>
-                                <button class="btn-count" onclick="window.actualizarCantidad(${itemIndex}, 0, '+')">+</button>
-                            </div>
-                        </div>
-                        <div style="color: gray;">Precio: ${v.precio} (Stock: ${v.stock})</div>
-                    `;
-                } 
-                else {
-                    let titleHTML = `<span>${item.nombre} `;
-                    item.variantes.forEach((v, vIndex) => {
-                        let checkedStr = v.seleccionado ? "checked" : "";
-                        titleHTML += `<br><label style="font-weight:normal; font-size:14px;"><input type="checkbox" ${checkedStr} onchange="window.toggleCheck(${itemIndex}, ${vIndex})"> Variedad de $${v.precio}</label> `;
-                    });
-                    titleHTML += `</span>`;
-
-                    let filasHTML = "";
-                    item.variantes.forEach((v, vIndex) => {
-                        filasHTML += `
-                            <div class="venta-row">
-                                <span style="color: gray;">Precio: ${v.precio} <small>(Stock: ${v.stock})</small></span>
-                                <div class="contador">
-                                    <button class="btn-count" onclick="window.actualizarCantidad(${itemIndex}, ${vIndex}, '-')">-</button>
-                                    <span>${v.cantidad_pedida}</span>
-                                    <button class="btn-count" onclick="window.actualizarCantidad(${itemIndex}, ${vIndex}, '+')">+</button>
+                    if (datos.deuda > 0) {
+                        hayDeudas = true;
+                        contenedorDeudas.innerHTML += `
+                            <div class="card-item" style="border-left: 5px solid var(--accent);">
+                                <div>
+                                    <div style="font-weight:600;">${datos.nombre}</div>
+                                    <div style="color:var(--accent); font-weight:bold; font-size: var(--font-size-small);">Debe: $${datos.deuda.toLocaleString('es-CO')}</div>
+                                </div>
+                                <div style="display:flex; gap:8px;">
+                                    <button class="btn-message-icon" onclick="copiarRecordatorio('${datos.nombre}', ${datos.deuda})" title="Enviar WhatsApp">💬</button>
+                                    <button class="btn-pay" onclick="abonarDeuda('${id}', '${datos.nombre}', ${datos.deuda})">Abonar</button>
                                 </div>
                             </div>
                         `;
+                    }
+                });
+
+                if(!hayDeudas) contenedorDeudas.innerHTML = '<p style="text-align:center; color:#888;">No hay deudas pendientes 🎉</p>';
+            } catch (error) { console.error(error); }
+        };
+
+        window.abonarDeuda = async function(id, nombre, deudaActual) {
+            let monto = prompt(`💰 Deuda actual de ${nombre}: $${deudaActual.toLocaleString('es-CO')}\n¿Cuánto dinero va a abonar/pagar hoy?`, deudaActual);
+            if (monto === null || monto.trim() === "") return;
+            monto = parseInt(monto.replace(/\./g, ''));
+            if (isNaN(monto) || monto <= 0) return alert("❌ Monto inválido");
+            if (monto > deudaActual) return alert("❌ No puede abonar más dinero del que debe.");
+
+            try {
+                await updateDoc(doc(db, "clientes", id), { deuda: increment(-monto) });
+                mostrarToast(`✅ Abono de $${monto.toLocaleString('es-CO')} registrado`, false);
+                cargarClientes();
+            } catch (error) { alert("Error al procesar el pago."); }
+        };
+
+        // ===== GESTIÓN DE INVENTARIO Y SABORES =====
+        window.cargarSaboresInventario = async function() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "inventario"));
+                const select = document.getElementById('select-ingreso-sabor');
+                select.innerHTML = '<option value="">Selecciona un sabor...</option>';
+                
+                let sabores = [];
+                querySnapshot.forEach((docSnap) => {
+                    sabores.push({ id: docSnap.id, nombre: docSnap.data().nombre });
+                });
+                
+                sabores.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                sabores.forEach(sabor => {
+                    select.innerHTML += `<option value="${sabor.id}">${sabor.nombre}</option>`;
+                });
+            } catch (error) { console.error(error); }
+        };
+
+        window.guardarNuevoSaborBD = async function() {
+            const inputSabor = document.getElementById('input-nuevo-sabor').value.trim();
+            if (inputSabor === "") return alert("⚠️ Escribe un nombre para el helado.");
+
+            const saborID = inputSabor.toLowerCase().replace(/\s+/g, '_');
+            const saborBonito = inputSabor.charAt(0).toUpperCase() + inputSabor.slice(1).toLowerCase();
+
+            try {
+                const docRef = doc(db, "inventario", saborID);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    alert("⚠️ Ese sabor ya existe en el sistema.");
+                    return;
+                }
+
+                // Creamos el documento maestro del sabor con objeto de precios vacíos o en 0
+                await setDoc(docRef, { 
+                    nombre: saborBonito, 
+                    precios: { 1000: 0, 2500: 0, 3500: 0 } 
+                });
+                
+                mostrarToast(`✅ ¡Sabor ${saborBonito} creado con éxito!`, false);
+                cerrarModalNuevoSabor();
+                
+                await cargarSaboresInventario();
+                document.getElementById('select-ingreso-sabor').value = saborID;
+                document.getElementById('ingreso-cantidad').focus();
+
+            } catch (error) { alert("Error creando el sabor."); }
+        };
+
+        window.guardarInventario = async function() {
+            const idSabor = document.getElementById('select-ingreso-sabor').value;
+            const precioSeleccionado = document.getElementById('select-ingreso-precio').value;
+            const inputCantidad = parseInt(document.getElementById('ingreso-cantidad').value);
+
+            if (idSabor === "") return alert("⚠️ Selecciona un sabor.");
+            if (isNaN(inputCantidad) || inputCantidad <= 0) return alert("⚠️ Ingresa una cantidad mayor a 0.");
+
+            try {
+                // Actualizamos la variante específica dentro del mapa de precios en Firestore
+                const docRef = doc(db, "inventario", idSabor);
+                await updateDoc(docRef, {
+                    [`precios.${precioSeleccionado}`]: increment(inputCantidad)
+                });
+
+                mostrarToast(`✅ ¡Añadidos al stock de $${precioSeleccionado}!`, false);
+                
+                document.getElementById('select-ingreso-sabor').value = "";
+                document.getElementById('ingreso-cantidad').value = "";
+                switchView('list');
+
+            } catch (error) { 
+                console.error(error);
+                alert("Error guardando el inventario. Asegúrate de que el sabor exista en Firestore."); 
+            }
+        };
+
+        // ===== CARGAR VISTA DE STOCK GENERAL =====
+        window.cargarVistaStock = async function() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "inventario"));
+                const contenedorStock = document.getElementById('stock-container');
+                contenedorStock.innerHTML = '';
+                let hayStock = false;
+
+                querySnapshot.forEach((docSnap) => {
+                    const datos = docSnap.data();
+                    const precios = datos.precios || { 1000: 0, 2500: 0, 3500: 0 };
+                    
+                    hayStock = true;
+                    contenedorStock.innerHTML += `
+                        <div class="card-item" style="flex-direction: column; align-items: flex-start; gap: 6px;">
+                            <div style="font-weight: 700; font-size: 1.05rem; color: var(--primary);">${datos.nombre}</div>
+                            <div style="display: flex; gap: 10px; width: 100%; justify-content: space-between; font-size: var(--font-size-small); color: #555;">
+                                <span>$1.000: <b>${precios[1000] || 0}</b></span>
+                                <span>$2.500: <b>${precios[2500] || 0}</b></span>
+                                <span>$3.500: <b>${precios[3500] || 0}</b></span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                if(!hayStock) contenedorStock.innerHTML = '<p style="text-align:center; color:#888;">No hay sabores registrados en el inventario.</p>';
+            } catch (error) { console.error(error); }
+        };
+
+        // ===== SUBIR VENTAS A BASE DE DATOS =====
+        window.subirBaseDeDatos = async function() {
+            const btn = document.getElementById('btn-subir');
+            const esFiado = document.getElementById('check-fiado').checked;
+            const clienteId = document.getElementById('select-cliente').value;
+            if (esFiado && clienteId === "") return alert("⚠️ Selecciona un cliente para fiarle.");
+            btn.disabled = true; btn.innerText = "⏳ Subiendo...";
+
+            try {
+                let totalVentaDinero = 0;
+                for (const key in window.carrito) {
+                    const item = window.carrito[key];
+                    if (item.cantidad <= 0) continue;
+                    
+                    const subtotal = item.cantidad * item.precio;
+                    totalVentaDinero += subtotal;
+
+                    // Registrar venta individual
+                    await addDoc(collection(db, "ventas"), {
+                        sabor: item.nombre, 
+                        precioUnitario: item.precio,
+                        cantidad: item.cantidad,
+                        tipo: esFiado ? "fiado" : "contado", 
+                        cliente: esFiado ? clienteId : "ninguno",
+                        fecha: serverTimestamp()
                     });
 
-                    div.innerHTML = `
-                        <div class="venta-header" style="flex-wrap: wrap;">${titleHTML}</div>
-                        ${filasHTML}
-                    `;
+                    // Descontar del stock de la variante correspondiente en Firestore
+                    await updateDoc(doc(db, "inventario", item.idSabor), {
+                        [`precios.${item.precio}`]: increment(-item.cantidad)
+                    });
                 }
+
+                if (esFiado) await updateDoc(doc(db, "clientes", clienteId), { deuda: increment(totalVentaDinero) });
+
+                mostrarToast(esFiado ? "✅ Fiado guardado exitosamente" : "✅ Venta registrada con éxito", false);
+                window.carrito = {}; 
+                document.getElementById('check-fiado').checked = false;
+                toggleFiado(); 
+                window.actualizarInterfaz(); 
+                window.cargarClientes(); 
+                
+            } catch (error) { 
+                console.error(error);
+                alert("Hubo un error subiendo los datos de venta."); 
+            } finally { 
+                btn.innerText = "☁️ Subir Ventas a Base de Datos"; 
+            }
+        };
+
+        window.getDoc = getDoc; window.doc = doc;
+    </script>
+
+    <!-- SCRIPT DE CONTROL DE VISTAS Y UI -->
+    <script>
+        const PASSWORD_APP = "1234"; // Contraseña de acceso
+        window.carrito = {};
+        let html5QrcodeScanner = null;
+        let isProcessingScan = false;
+
+        window.onload = () => {
+            if (localStorage.getItem("auth") === "true") {
+                document.getElementById("login-screen").style.display = "none";
+                setTimeout(() => { 
+                    if(window.cargarClientes) window.cargarClientes(); 
+                    window.actualizarInterfaz();
+                }, 800);
+            }
+        };
+
+        window.verificarLogin = function() {
+            if (document.getElementById("pin-input").value === PASSWORD_APP) {
+                localStorage.setItem("auth", "true");
+                document.getElementById("login-screen").style.display = "none";
+                setTimeout(() => { 
+                    if(window.cargarClientes) window.cargarClientes(); 
+                }, 500);
+            } else {
+                document.getElementById("login-error").style.display = "block";
+            }
+        };
+
+        // Mostrar u ocultar selector de clientes solo si es fiado
+        window.toggleFiado = function() {
+            const isChecked = document.getElementById('check-fiado').checked;
+            const select = document.getElementById('select-cliente');
+            select.style.display = isChecked ? "block" : "none";
+            if(!isChecked) select.value = "";
+        };
+
+        window.abrirModalNuevoSabor = function() {
+            document.getElementById('modal-nuevo-sabor').style.display = 'flex';
+            document.getElementById('input-nuevo-sabor').value = '';
+            document.getElementById('input-nuevo-sabor').focus();
+        };
+        window.cerrarModalNuevoSabor = function() {
+            document.getElementById('modal-nuevo-sabor').style.display = 'none';
+        };
+
+        window.copiarRecordatorio = function(nombre, deuda) {
+            const mensaje = `Hola ${nombre}, ¿cómo estás? Te escribo para recordarte que tienes un saldo pendiente por los heladitos de $${deuda.toLocaleString('es-CO')}. Cuando puedas me haces el paguito 🙏. ¡Gracias y bendiciones!`;
+            navigator.clipboard.writeText(mensaje).then(() => {
+                mostrarToast(`✅ Mensaje para ${nombre} copiado`, false);
+            }).catch(err => alert("No se pudo copiar el mensaje automáticamente."));
+        };
+
+        function playBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime); 
+                osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.15);
+            } catch(e) {}
+            if (navigator.vibrate) navigator.vibrate(100);
+        }
+        function playErrorBeep() { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); }
+
+        // Navegación principal entre pestañas
+        window.switchView = function(viewName) {
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            
+            const btnNav = document.getElementById(`btn-${viewName}`);
+            if(btnNav) btnNav.classList.add('active');
+
+            if (viewName === 'scanner') startScanner();
+            else stopScanner();
+
+            if (viewName === 'deudas' && window.cargarClientes) window.cargarClientes();
+            if (viewName === 'ingreso' && window.cargarSaboresInventario) window.cargarSaboresInventario();
+            if (viewName === 'stock' && window.cargarVistaStock) window.cargarVistaStock();
+        };
+
+        // Escáner QR de helados (El QR puede venir configurado con formato "sabor_precio", ej: "fresa_2500")
+        function startScanner() {
+            if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader");
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, { fps: 10, qrbox: { width: 230, height: 230 } },
+                async (textoDecodificado) => {
+                    if (isProcessingScan) return;
+                    isProcessingScan = true;
+
+                    // Separar texto del QR. Ejemplo formato esperado: "fresa_2500" o si es texto simple asume 2500 por defecto
+                    let partes = textoDecodificado.trim().toLowerCase().split('_');
+                    let idSabor = partes[0];
+                    let precioHelado = partes[1] ? parseInt(partes[1]) : 2500;
+                    let cartKey = `${idSabor}_${precioHelado}`;
+
+                    const cantidadEnCarrito = window.carrito[cartKey] ? window.carrito[cartKey].cantidad : 0;
+
+                    try {
+                        const docRef = window.doc(window.db, "inventario", idSabor);
+                        const docSnap = await window.getDoc(docRef);
+
+                        if (docSnap.exists()) {
+                            const datosDoc = docSnap.data();
+                            const preciosStock = datosDoc.precios || { 1000: 0, 2500: 0, 3500: 0 };
+                            const stockDisponible = preciosStock[precioHelado] || 0;
+
+                            if (stockDisponible > cantidadEnCarrito) {
+                                playBeep();
+                                if (window.carrito[cartKey]) {
+                                    window.carrito[cartKey].cantidad++;
+                                } else {
+                                    window.carrito[cartKey] = {
+                                        idSabor: idSabor,
+                                        nombre: datosDoc.nombre,
+                                        precio: precioHelado,
+                                        cantidad: 1,
+                                        maxStock: stockDisponible
+                                    };
+                                }
+                                mostrarToast(`Añadido: ${datosDoc.nombre} ($${precioHelado})`, false);
+                                actualizarInterfaz();
+                            } else {
+                                playErrorBeep(); mostrarToast(`❌ Sin stock para de $${precioHelado}`, true);
+                            }
+                        } else {
+                            playErrorBeep(); mostrarToast("❌ Helado no registrado en el sistema", true);
+                        }
+                    } catch (err) { 
+                        console.error(err);
+                        mostrarToast("⚠️ Error verificando inventario", true); 
+                    }
+
+                    setTimeout(() => { isProcessingScan = false; }, 1500); 
+                },
+                (error) => {}
+            ).catch(err => alert("Permite el uso de la cámara para poder escanear."));
+        }
+
+        function stopScanner() { if (html5QrcodeScanner && html5QrcodeScanner.isScanning) html5QrcodeScanner.stop(); }
+
+        // Actualizar la vista de la lista de venta actual
+        window.actualizarInterfaz = function() {
+            const contenedor = document.getElementById('cart-container');
+            const btnSubir = document.getElementById('btn-subir');
+            contenedor.innerHTML = '';
+            let totalItems = 0;
+
+            for (const [key, item] of Object.entries(window.carrito)) {
+                if(item.cantidad > 0) totalItems++;
+                const div = document.createElement('div'); div.className = 'card-item';
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight: 600; text-transform: capitalize;">${item.nombre}</div>
+                        <div style="font-size: var(--font-size-small); color: var(--primary); font-weight: bold;">Precio: $${item.precio.toLocaleString('es-CO')}</div>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="btn-qty" onclick="cambiarCantidad('${key}', -1)">-</button>
+                        <span style="font-weight:bold;">${item.cantidad}</span>
+                        <button class="btn-qty" onclick="cambiarCantidad('${key}', 1)">+</button>
+                    </div>`;
                 contenedor.appendChild(div);
-            });
+            }
+
+            btnSubir.disabled = totalItems === 0;
+            if(totalItems === 0) contenedor.innerHTML = '<p style="text-align:center; color:#888; padding: 20px;">Escanea un código QR para empezar a vender</p>';
+        };
+
+        window.cambiarCantidad = function(key, cambio) {
+            if (window.carrito[key]) {
+                const nuevaCantidad = window.carrito[key].cantidad + cambio;
+                if (nuevaCantidad > window.carrito[key].maxStock) {
+                    mostrarToast("❌ No hay más inventario disponible", true); return;
+                }
+                window.carrito[key].cantidad = nuevaCantidad;
+                if (window.carrito[key].cantidad <= 0) delete window.carrito[key];
+                actualizarInterfaz();
+            }
+        };
+
+        window.mostrarToast = function(mensaje, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.innerText = mensaje;
+            if (isError) toast.classList.add('error'); else toast.classList.remove('error');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2200);
         };
     </script>
 </body>
