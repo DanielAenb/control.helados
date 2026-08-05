@@ -47,6 +47,10 @@
         #reader { width: 100%; border-radius: var(--border-radius); overflow: hidden; background: #000; margin-bottom: 15px;}
         .card-item { background: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: var(--border-radius); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
         
+        /* Clase especial para items agotados en el inventario */
+        .card-item.empty-stock { background-color: #ffebee; border-left: 5px solid var(--warning); }
+        .card-item.empty-stock .stock-number { color: var(--warning); }
+
         .qty-controls { display: flex; align-items: center; gap: 15px; }
         .btn-qty { background: #f0f0f0; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: calc(var(--font-base) + 0.2rem); font-weight: bold; cursor: pointer; }
         
@@ -86,11 +90,20 @@
             background: none; border: none; color: #888;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-size: 0.75rem; cursor: pointer; transition: all 0.3s;
-            flex: 1; padding: 5px 0;
+            flex: 1; padding: 8px 5px; border-radius: 20px;
         }
         .nav-btn .icon { font-size: 1.4rem; margin-bottom: 4px; transition: 0.2s; }
-        .nav-btn.active { color: var(--text-main); font-weight: bold; }
-        .nav-btn.active .icon { transform: scale(1.1); color: var(--text-main); }
+        
+        /* Indicador Visual para Opciones Activas (Llenar, Venta, Deudas) */
+        .nav-btn:not(.nav-btn-main).active { 
+            color: var(--primary); 
+            font-weight: bold; 
+            background-color: #e8f5e9; /* Resalta la caja con un verde claro */
+        }
+        .nav-btn:not(.nav-btn-main).active .icon { 
+            transform: translateY(-2px) scale(1.15); /* Efecto de levante */
+            color: var(--primary); 
+        }
         
         /* Botón Escanear (Más prominente) */
         .nav-btn-main {
@@ -100,7 +113,13 @@
             font-weight: bold; font-size: 0.85rem;
         }
         .nav-btn-main .icon { margin-bottom: 0; font-size: 1.2rem; color: white !important; }
-        .nav-btn-main.active { background: #1b5e20; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+        
+        /* Indicador Visual para Botón Escanear (Presionado/Relieve) */
+        .nav-btn-main.active { 
+            background: #1b5e20; /* Verde más oscuro */
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); /* Simula hundimiento */
+            border: 2px solid #a5d6a7; /* Borde clarito exterior para separarlo */
+        }
         
         .nav-text { display: inline-block; }
 
@@ -191,7 +210,7 @@
         <!-- VISTA: INGRESO DE INVENTARIO -->
         <div id="view-ingreso" class="view">
             <h2 style="margin-bottom: 15px; color: var(--info);">🛒 Ingresar al Inventario</h2>
-            <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+            <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 25px;">
                 <p style="margin-bottom: 15px; color: #666; font-size: var(--font-base);">Selecciona un sabor existente y suma la cantidad.</p>
                 
                 <div class="input-group-row">
@@ -207,6 +226,12 @@
                     ➕ Sumar al Inventario
                 </button>
             </div>
+
+            <!-- NUEVA SECCIÓN: LISTA DE STOCK DISPONIBLE -->
+            <h2 style="margin-bottom: 15px; font-size: 1.1rem; color: var(--text-main);">📦 Stock Disponible</h2>
+            <div id="stock-list-container">
+                <p style="font-size: var(--font-base); text-align: center;">Cargando inventario...</p>
+            </div>
         </div>
     </div>
 
@@ -218,7 +243,7 @@
                 <span class="icon">📷</span> <span class="nav-text">Escanear</span>
             </button>
             <!-- 2. Venta (Secundario) -->
-            <button class="nav-btn active" onclick="switchView('list')" id="btn-list">
+            <button class="nav-btn active" onclick="switchView('list')" id="btn-list" title="Registrar Venta">
                 <span class="icon">📋</span> <span class="nav-text">Venta</span>
             </button>
             <!-- 3. Llenar (Solo ícono) -->
@@ -240,15 +265,15 @@
         // ==========================================
         // AQUÍ VAN TUS CLAVES DE FIREBASE
         // ==========================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
-            authDomain: "helados-0612.firebaseapp.com",
-            projectId: "helados-0612",
-            storageBucket: "helados-0612.firebasestorage.app",
-            messagingSenderId: "683985818004",
-            appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
-            measurementId: "G-BVR8BXKPDR"
-        };
+const firebaseConfig = {
+  apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
+  authDomain: "helados-0612.firebaseapp.com",
+  projectId: "helados-0612",
+  storageBucket: "helados-0612.firebasestorage.app",
+  messagingSenderId: "683985818004",
+  appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
+  measurementId: "G-BVR8BXKPDR"
+};
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -306,22 +331,50 @@
             } catch (error) { alert("Error al procesar el pago."); }
         };
 
-        // ===== INVENTARIO: MENÚ DESPLEGABLE Y CREACIÓN =====
+        // ===== INVENTARIO: MENÚ DESPLEGABLE Y LISTA DE STOCK =====
         window.cargarSaboresInventario = async function() {
             try {
                 const querySnapshot = await getDocs(collection(db, "inventario"));
                 const select = document.getElementById('select-ingreso-sabor');
+                const contenedorStock = document.getElementById('stock-list-container'); // Referencia a la lista
+                
                 select.innerHTML = '<option value="">Selecciona un sabor...</option>';
+                contenedorStock.innerHTML = ''; // Limpiamos contenedor de stock
                 
                 let sabores = [];
                 querySnapshot.forEach((docSnap) => {
-                    sabores.push({ id: docSnap.id, nombre: docSnap.data().nombre });
+                    sabores.push({ 
+                        id: docSnap.id, 
+                        nombre: docSnap.data().nombre,
+                        stock: docSnap.data().stock || 0 // Asegura que siempre devuelva un numero
+                    });
                 });
                 
                 sabores.sort((a, b) => a.nombre.localeCompare(b.nombre));
                 
+                if(sabores.length === 0) {
+                    contenedorStock.innerHTML = '<p style="text-align:center; color:#888; font-size: var(--font-base);">No hay sabores registrados aún.</p>';
+                }
+
                 sabores.forEach(sabor => {
+                    // Llenar el Select
                     select.innerHTML += `<option value="${sabor.id}">${sabor.nombre}</option>`;
+                    
+                    // Llenar la nueva lista inferior
+                    // Condicional IF (frontend) que pregunta si el stock es 0 o menor
+                    const isEmpty = sabor.stock <= 0;
+                    
+                    contenedorStock.innerHTML += `
+                        <div class="card-item ${isEmpty ? 'empty-stock' : ''}">
+                            <div style="font-size: 1.05rem; font-weight:bold; display:flex; align-items:center; gap: 8px;">
+                                ${isEmpty ? '<span style="font-size: 0.8rem;">🔴</span>' : ''}
+                                ${sabor.nombre}
+                            </div>
+                            <div class="stock-number" style="font-size:1.15rem; font-weight:bold;">
+                                ${sabor.stock} <span style="font-size: 0.8rem; color:#888; font-weight: normal;">unid.</span>
+                            </div>
+                        </div>
+                    `;
                 });
             } catch (error) { console.error(error); }
         };
@@ -519,7 +572,6 @@
                         }
                     } catch (err) { mostrarToast("⚠️ Error verificando inventario", true); }
 
-                    // Cooldown ajustado a 2000 ms (2 segundos)
                     setTimeout(() => { isProcessingScan = false; }, 2000); 
                 },
                 (error) => {}
@@ -568,7 +620,6 @@
             toast.innerText = mensaje;
             if (isError) toast.classList.add('error'); else toast.classList.remove('error');
             toast.classList.add('show');
-            // Toast configurado a exactamente 2000 ms (2 segundos)
             setTimeout(() => toast.classList.remove('show'), 2000);
         };
     </script>
