@@ -21,6 +21,7 @@
             --text-main: #2D3436;
             --border-radius: 12px;
             
+            /* Variable global para el tamaño de las fuentes (fácil de ajustar) */
             --font-size-base: 0.95rem;
             --font-size-small: 0.85rem;
         }
@@ -39,6 +40,7 @@
         .view { display: none; }
         .view.active { display: block; }
 
+        /* Títulos de sección uniformes */
         h2 { font-size: 1.15rem; font-weight: 600; margin-bottom: 12px; color: var(--text-main); }
 
         /* PANTALLA DE LOGIN */
@@ -52,7 +54,7 @@
         .card-item { background: var(--card-bg); padding: 14px 16px; margin-bottom: 10px; border-radius: var(--border-radius); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.04);}
         
         .qty-controls { display: flex; align-items: center; gap: 12px; }
-        .btn-qty { background: #f0f0f0; border: none; width: 32px; height: 32px; border-radius: 5px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;}
+        .btn-qty { background: #f0f0f0; border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;}
         
         /* CAJA DE FIADO */
         .fiado-box { background: #fff3e0; padding: 15px; border-radius: var(--border-radius); margin-top: 20px; border: 1px solid #ffe0b2; }
@@ -61,7 +63,10 @@
         
         /* FORMULARIOS E INPUTS */
         .input-form { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #ccc; background: white; }
-        
+        .input-group-row { display: flex; gap: 10px; margin-bottom: 12px; }
+        .input-group-row select { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; background: white; }
+        .btn-add-flavor { background: var(--info); color: white; border: none; width: 45px; border-radius: 8px; font-size: 1.4rem; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+
         /* BOTONES PRINCIPALES UNIFORMES */
         .btn-submit { background: var(--primary); color: white; border: none; padding: 14px; width: 100%; font-weight: bold; border-radius: var(--border-radius); margin-top: 10px; cursor: pointer; box-shadow: 0 3px 8px rgba(46, 125, 50, 0.25);}
         .btn-submit:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
@@ -80,24 +85,15 @@
             background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
             display: flex; padding: 6px; border-radius: 40px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.12); border: 1px solid rgba(0,0,0,0.04);
-            pointer-events: auto; max-width: 95%; overflow-x: auto; align-items: center;
+            pointer-events: auto; max-width: 95%; overflow-x: auto;
         }
         .nav-btn {
             padding: 10px 16px; border: none; background: none; font-weight: 600;
             color: #777; cursor: pointer; border-radius: 30px; transition: all 0.2s ease;
-            white-space: nowrap; font-size: var(--font-size-small); display: flex; align-items: center; gap: 5px;
+            white-space: nowrap; font-size: var(--font-size-small);
         }
-        
-        /* ESTILO ESPECÍFICO PARA ESCANEO (FONDO SÓLIDO) */
-        .nav-btn.solid-main {
-            background-color: var(--primary);
-            color: white;
-            box-shadow: 0 4px 10px rgba(46, 125, 50, 0.4);
-            margin-right: 5px;
-        }
-        .nav-btn.active:not(.solid-main) {
-            color: var(--primary);
-            background: rgba(46, 125, 50, 0.1);
+        .nav-btn.active {
+            background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(46, 125, 50, 0.3);
         }
 
         /* TOAST DE NOTIFICACIONES */
@@ -113,27 +109,9 @@
         }
         .modal-content {
             background: white; padding: 22px; border-radius: 16px;
-            width: 90%; max-width: 330px; text-align: left; box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            width: 90%; max-width: 330px; text-align: center; box-shadow: 0 8px 25px rgba(0,0,0,0.2);
         }
-        .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; }
-        .checkbox-group label { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-small); color: #555;}
-        
-        /* INDICADORES DE STOCK */
-        .indicator { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-left: auto; }
-        .indicator.red { background-color: var(--warning); box-shadow: 0 0 5px rgba(244, 67, 54, 0.5); }
-        .indicator.yellow { background-color: #FFC107; box-shadow: 0 0 5px rgba(255, 193, 7, 0.5); }
-        .indicator.transparent { background-color: transparent; }
-
-        /* BOTÓN FLOTANTE (FAB) PARA CREAR SABOR EN STOCK */
-        .btn-fab {
-            position: fixed; bottom: 90px; right: 20px; background-color: var(--info);
-            color: white; border: none; border-radius: 50%; width: 55px; height: 55px;
-            font-size: 28px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 90; display: none;
-            cursor: pointer; align-items: center; justify-content: center;
-        }
-
-        /* FILAS DE VARIANTE EN VENTA */
-        .venta-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-left: 10px; border-left: 2px solid #eee;}
+        .modal-content p { color: #666; font-size: var(--font-size-small); margin-bottom: 12px; }
     </style>
 </head>
 <body>
@@ -151,21 +129,12 @@
     <!-- MODAL PARA CREAR NUEVO SABOR -->
     <div id="modal-nuevo-sabor">
         <div class="modal-content">
-            <h3 style="margin-bottom: 5px; font-size: 1.1rem; text-align: center;">Crear Nuevo Sabor</h3>
-            <p style="text-align: center; color: #666; font-size: var(--font-size-small); margin-bottom: 12px;">El stock inicial será de 5 unidades por variante.</p>
-            
-            <input type="text" id="input-nuevo-sabor" class="input-form" placeholder="Ej. BatiBati" autocomplete="off">
-            
-            <label style="font-weight: 600; font-size: var(--font-size-small);">Variantes disponibles:</label>
-            <div class="checkbox-group">
-                <label><input type="checkbox" id="chk-1000" onchange="validarCheckboxes()"> Variante $1.000</label>
-                <label><input type="checkbox" id="chk-2500" onchange="validarCheckboxes()"> Variante $2.500</label>
-                <label><input type="checkbox" id="chk-3500" onchange="validarCheckboxes()"> Variante $3.500 (Único)</label>
-            </div>
-
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <h3 style="margin-bottom: 5px; font-size: 1.1rem;">Crear Nuevo Sabor Base</h3>
+            <p>Escribe el nombre general del sabor (Ej. Fresa, ChocoMenta)</p>
+            <input type="text" id="input-nuevo-sabor" class="input-form" placeholder="Nombre del sabor" autocomplete="off">
+            <div style="display: flex; gap: 10px; margin-top: 5px;">
                 <button class="btn-submit" style="background: #999; margin-top: 0;" onclick="cerrarModalNuevoSabor()">Cancelar</button>
-                <button class="btn-submit" style="background: var(--info); margin-top: 0;" onclick="guardarNuevoSaborBD()">Guardar</button>
+                <button class="btn-submit" style="background: var(--info); margin-top: 0;" onclick="guardarNuevoSaborBD()">Crear</button>
             </div>
         </div>
     </div>
@@ -179,20 +148,11 @@
 
     <div class="container">
         
-        <!-- VISTA 1: ESCANEAR QR -->
-        <div id="view-scanner" class="view active">
-            <h2>Escanear Helado</h2>
-            <div id="reader"></div>
-            <p style="text-align: center; color: #666; font-size: var(--font-size-small); margin-top:15px;">Apunta la cámara al código QR. Si el sabor existe, se añadirá automáticamente a la Venta.</p>
-            <!-- Botón simulador temporal para pruebas en PC -->
-            <button class="btn-submit" style="background: #555; margin-top:20px;" onclick="simularEscaneoQR('batibati')">Simular Escaneo "BatiBati" (Para PC)</button>
-        </div>
-
-        <!-- VISTA 2: LISTA ACTUAL DE VENTA -->
-        <div id="view-list" class="view">
-            <h2>Venta Actual</h2>
+        <!-- VISTA 1: LISTA ACTUAL DE VENTA -->
+        <div id="view-list" class="view active">
+            <h2>Helados a Registrar</h2>
             <div id="cart-container">
-                <p style="text-align:center; color:#888; padding: 20px;">No hay helados escaneados.</p>
+                <p style="text-align:center; color:#888; padding: 20px;">Cargando carrito...</p>
             </div>
             
             <!-- CAJA DE FIADO -->
@@ -211,18 +171,53 @@
             </button>
         </div>
 
+        <!-- VISTA 2: ESCANEAR QR -->
+        <div id="view-scanner" class="view">
+            <h2>Escanear QR de Helado</h2>
+            <div id="reader"></div>
+            <p style="text-align: center; color: #666; font-size: var(--font-size-small);">Apunta la cámara al código QR del helado para sumarlo automáticamente a la lista.</p>
+        </div>
+
         <!-- VISTA 3: DISPONIBILIDAD EN STOCK -->
         <div id="view-stock" class="view">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 style="margin: 0;">Inventario</h2>
-                <button onclick="cargarVistaStock()" style="background:none; border:none; color: var(--primary); font-size:1.2rem; cursor:pointer;">🔄</button>
-            </div>
+            <h2>Disponibilidad en Stock</h2>
+            <p style="color: #666; margin-bottom: 15px; font-size: var(--font-size-small);">Inventario actual desglosado por precio y sabor.</p>
             <div id="stock-container">
                 <p style="text-align:center; color:#888;">Cargando inventario...</p>
             </div>
         </div>
 
-        <!-- VISTA 4: LIBRETA DE DEUDAS -->
+        <!-- VISTA 4: INGRESAR AL INVENTARIO -->
+        <div id="view-ingreso" class="view">
+            <h2>🛒 Ingresar al Inventario</h2>
+            <div style="background: white; padding: 20px; border-radius: var(--border-radius); box-shadow: 0 2px 5px rgba(0,0,0,0.04);">
+                <p style="margin-bottom: 12px; color: #666; font-size: var(--font-size-small);">Selecciona el sabor, el precio de venta y suma la cantidad.</p>
+                
+                <label style="font-weight: 600; font-size: var(--font-size-small);">Sabor:</label>
+                <div class="input-group-row" style="margin-top: 5px;">
+                    <select id="select-ingreso-sabor">
+                        <option value="">Cargando sabores...</option>
+                    </select>
+                    <button class="btn-add-flavor" onclick="abrirModalNuevoSabor()" title="Crear nuevo sabor">+</button>
+                </div>
+                
+                <label style="font-weight: 600; font-size: var(--font-size-small);">Variante de Precio:</label>
+                <select id="select-ingreso-precio" class="input-form" style="margin-top: 5px;">
+                    <option value="1000">$1.000</option>
+                    <option value="2500" selected>$2.500</option>
+                    <option value="3500">$3.500</option>
+                </select>
+
+                <label style="font-weight: 600; font-size: var(--font-size-small);">Cantidad a sumar:</label>
+                <input type="number" id="ingreso-cantidad" class="input-form" style="margin-top: 5px;" placeholder="Ej. 10" inputmode="numeric">
+                
+                <button class="btn-submit" style="background: var(--info);" onclick="guardarInventario()">
+                    ➕ Sumar al Inventario
+                </button>
+            </div>
+        </div>
+
+        <!-- VISTA 5: LIBRETA DE DEUDAS -->
         <div id="view-deudas" class="view">
             <h2 style="color: var(--accent);">Libreta de Deudas</h2>
             <div id="deudas-container">
@@ -232,19 +227,14 @@
 
     </div>
 
-    <!-- BOTÓN FLOTANTE PARA STOCK -->
-    <button id="btn-fab-stock" class="btn-fab" onclick="abrirModalNuevoSabor()">+</button>
-
     <!-- BARRA DE NAVEGACIÓN INFERIOR (ESTILO PÍLDORA) -->
     <div class="bottom-nav-container">
         <nav class="bottom-nav">
-            <!-- Escaneo: Fondo sólido a la izquierda -->
-            <button class="nav-btn solid-main active" onclick="switchView('scanner')" id="btn-scanner">📷 Escaneo</button>
-            
-            <!-- Íconos normales -->
-            <button class="nav-btn" onclick="switchView('list')" id="btn-list">🛒 Venta</button>
-            <button class="nav-btn" onclick="switchView('stock')" id="btn-stock">📦 Stock</button>
-            <button class="nav-btn" onclick="switchView('deudas')" id="btn-deudas">📒 Deudas</button>
+            <button class="nav-btn active" onclick="switchView('list')" id="btn-list">Lista</button>
+            <button class="nav-btn" onclick="switchView('scanner')" id="btn-scanner">Escanear</button>
+            <button class="nav-btn" onclick="switchView('stock')" id="btn-stock">Stock</button>
+            <button class="nav-btn" onclick="switchView('ingreso')" id="btn-ingreso">Llenar</button>
+            <button class="nav-btn" onclick="switchView('deudas')" id="btn-deudas">Deudas</button>
         </nav>
     </div>
 
@@ -254,26 +244,24 @@
         import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // ==========================================
-        // CONFIGURACIÓN DE FIREBASE
+        // CONFIGURACIÓN DE FIREBASE (Inserta tus credenciales aquí)
         // ==========================================
-            const firebaseConfig = {
-             apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
             authDomain: "helados-0612.firebaseapp.com",
-             projectId: "helados-0612",
-             storageBucket: "helados-0612.firebasestorage.app",
-             messagingSenderId: "683985818004",
-             appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
-             measurementId: "G-BVR8BXKPDR"
+            projectId: "helados-0612",
+            storageBucket: "helados-0612.firebasestorage.app",
+            messagingSenderId: "683985818004",
+            appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
+            measurementId: "G-BVR8BXKPDR"
 };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         window.db = db;
 
-        // Estructura del carrito: Array de sabores escaneados
-        window.carritoVenta = [];
-        // Caché local del inventario
-        window.dbSaboresLocal = [];
+        // Estructura del carrito global: { "fresa_2500": { sabor: "Fresa", precio: 2500, cantidad: 2, maxStock: 10 } }
+        window.carrito = {};
 
         // ===== CARGAR CLIENTES Y DEUDAS =====
         window.cargarClientes = async function() {
@@ -328,24 +316,30 @@
         };
 
         // ===== GESTIÓN DE INVENTARIO Y SABORES =====
+        window.cargarSaboresInventario = async function() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "inventario"));
+                const select = document.getElementById('select-ingreso-sabor');
+                select.innerHTML = '<option value="">Selecciona un sabor...</option>';
+                
+                let sabores = [];
+                querySnapshot.forEach((docSnap) => {
+                    sabores.push({ id: docSnap.id, nombre: docSnap.data().nombre });
+                });
+                
+                sabores.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                sabores.forEach(sabor => {
+                    select.innerHTML += `<option value="${sabor.id}">${sabor.nombre}</option>`;
+                });
+            } catch (error) { console.error(error); }
+        };
+
         window.guardarNuevoSaborBD = async function() {
-            const nombre = document.getElementById("input-nuevo-sabor").value.trim();
-            const c1000 = document.getElementById("chk-1000").checked;
-            const c2500 = document.getElementById("chk-2500").checked;
-            const c3500 = document.getElementById("chk-3500").checked;
+            const inputSabor = document.getElementById('input-nuevo-sabor').value.trim();
+            if (inputSabor === "") return alert("⚠️ Escribe un nombre para el helado.");
 
-            if(!nombre) return alert("⚠️ Escribe un nombre para el helado.");
-
-            let nuevasVariantes = [];
-            // Asignamos un stock inicial de prueba (5 unidades)
-            if (c1000) nuevasVariantes.push({ precio: 1000, stock: 5 }); 
-            if (c2500) nuevasVariantes.push({ precio: 2500, stock: 5 }); 
-            if (c3500) nuevasVariantes.push({ precio: 3500, stock: 5 }); 
-
-            if(nuevasVariantes.length === 0) return alert("⚠️ Selecciona al menos un precio.");
-
-            const saborID = nombre.toLowerCase().replace(/\s+/g, '_');
-            const saborBonito = nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase();
+            const saborID = inputSabor.toLowerCase().replace(/\s+/g, '_');
+            const saborBonito = inputSabor.charAt(0).toUpperCase() + inputSabor.slice(1).toLowerCase();
 
             try {
                 const docRef = doc(db, "inventario", saborID);
@@ -356,58 +350,75 @@
                     return;
                 }
 
-                // Guardamos usando la nueva estructura de array (Lista de Mapas)
+                // Creamos el documento maestro del sabor con objeto de precios vacíos o en 0
                 await setDoc(docRef, { 
                     nombre: saborBonito, 
-                    variantes: nuevasVariantes 
+                    precios: { 1000: 0, 2500: 0, 3500: 0 } 
                 });
                 
                 mostrarToast(`✅ ¡Sabor ${saborBonito} creado con éxito!`, false);
                 cerrarModalNuevoSabor();
-                cargarVistaStock(); // Recargar
+                
+                await cargarSaboresInventario();
+                document.getElementById('select-ingreso-sabor').value = saborID;
+                document.getElementById('ingreso-cantidad').focus();
 
             } catch (error) { alert("Error creando el sabor."); }
         };
 
+        window.guardarInventario = async function() {
+            const idSabor = document.getElementById('select-ingreso-sabor').value;
+            const precioSeleccionado = document.getElementById('select-ingreso-precio').value;
+            const inputCantidad = parseInt(document.getElementById('ingreso-cantidad').value);
+
+            if (idSabor === "") return alert("⚠️ Selecciona un sabor.");
+            if (isNaN(inputCantidad) || inputCantidad <= 0) return alert("⚠️ Ingresa una cantidad mayor a 0.");
+
+            try {
+                // Actualizamos la variante específica dentro del mapa de precios en Firestore
+                const docRef = doc(db, "inventario", idSabor);
+                await updateDoc(docRef, {
+                    [`precios.${precioSeleccionado}`]: increment(inputCantidad)
+                });
+
+                mostrarToast(`✅ ¡Añadidos al stock de $${precioSeleccionado}!`, false);
+                
+                document.getElementById('select-ingreso-sabor').value = "";
+                document.getElementById('ingreso-cantidad').value = "";
+                switchView('list');
+
+            } catch (error) { 
+                console.error(error);
+                alert("Error guardando el inventario. Asegúrate de que el sabor exista en Firestore."); 
+            }
+        };
+
+        // ===== CARGAR VISTA DE STOCK GENERAL =====
         window.cargarVistaStock = async function() {
             try {
                 const querySnapshot = await getDocs(collection(db, "inventario"));
                 const contenedorStock = document.getElementById('stock-container');
                 contenedorStock.innerHTML = '';
-                window.dbSaboresLocal = [];
                 let hayStock = false;
 
                 querySnapshot.forEach((docSnap) => {
                     const datos = docSnap.data();
-                    window.dbSaboresLocal.push({ id: docSnap.id, ...datos });
+                    const precios = datos.precios || { 1000: 0, 2500: 0, 3500: 0 };
                     
-                    const variantes = datos.variantes || [];
-                    
-                    // Lógica de Indicadores (Rojo, Amarillo, Transparente)
-                    let colorIndicador = "transparent";
-                    const sinStock = variantes.some(v => v.stock === 0);
-                    const stockBajo = variantes.some(v => v.stock > 0 && v.stock < 3);
-
-                    if (sinStock) colorIndicador = "red";
-                    else if (stockBajo) colorIndicador = "yellow";
-
-                    let htmlPrecios = variantes.map(v => `$${v.precio.toLocaleString('es-CO')} <span style="color:#888;">(Cant: ${v.stock})</span>`).join(" | ");
-
                     hayStock = true;
                     contenedorStock.innerHTML += `
-                        <div class="card-item" style="flex-direction: row; align-items: center;">
-                            <div style="flex:1;">
-                                <div style="font-weight: 700; font-size: 1.05rem; color: var(--primary);">${datos.nombre}</div>
-                                <div style="font-size: var(--font-size-small); margin-top:3px;">
-                                    ${htmlPrecios}
-                                </div>
+                        <div class="card-item" style="flex-direction: column; align-items: flex-start; gap: 6px;">
+                            <div style="font-weight: 700; font-size: 1.05rem; color: var(--primary);">${datos.nombre}</div>
+                            <div style="display: flex; gap: 10px; width: 100%; justify-content: space-between; font-size: var(--font-size-small); color: #555;">
+                                <span>$1.000: <b>${precios[1000] || 0}</b></span>
+                                <span>$2.500: <b>${precios[2500] || 0}</b></span>
+                                <span>$3.500: <b>${precios[3500] || 0}</b></span>
                             </div>
-                            <div class="indicator ${colorIndicador}"></div>
                         </div>
                     `;
                 });
 
-                if(!hayStock) contenedorStock.innerHTML = '<p style="text-align:center; color:#888;">No hay sabores registrados.</p>';
+                if(!hayStock) contenedorStock.innerHTML = '<p style="text-align:center; color:#888;">No hay sabores registrados en el inventario.</p>';
             } catch (error) { console.error(error); }
         };
 
@@ -421,56 +432,37 @@
 
             try {
                 let totalVentaDinero = 0;
-                
-                for (const item of window.carritoVenta) {
-                    let huboCambios = false;
+                for (const key in window.carrito) {
+                    const item = window.carrito[key];
+                    if (item.cantidad <= 0) continue;
                     
-                    // Traemos el doc de Firestore para modificar el array
-                    const docRef = doc(db, "inventario", item.id);
-                    const docSnap = await getDoc(docRef);
-                    if(!docSnap.exists()) continue;
-                    
-                    let variantesDb = docSnap.data().variantes;
+                    const subtotal = item.cantidad * item.precio;
+                    totalVentaDinero += subtotal;
 
-                    for (const vCart of item.variantes) {
-                        if (vCart.cantidad_pedida > 0) {
-                            // Sumamos dinero
-                            totalVentaDinero += (vCart.cantidad_pedida * vCart.precio);
-                            
-                            // Restamos stock localmente al array extraído
-                            let vDb = variantesDb.find(v => v.precio === vCart.precio);
-                            if(vDb) {
-                                vDb.stock -= vCart.cantidad_pedida;
-                                huboCambios = true;
-                            }
+                    // Registrar venta individual
+                    await addDoc(collection(db, "ventas"), {
+                        sabor: item.nombre, 
+                        precioUnitario: item.precio,
+                        cantidad: item.cantidad,
+                        tipo: esFiado ? "fiado" : "contado", 
+                        cliente: esFiado ? clienteId : "ninguno",
+                        fecha: serverTimestamp()
+                    });
 
-                            // Registramos venta
-                            await addDoc(collection(db, "ventas"), {
-                                sabor: item.nombre, 
-                                precioUnitario: vCart.precio,
-                                cantidad: vCart.cantidad_pedida,
-                                tipo: esFiado ? "fiado" : "contado", 
-                                cliente: esFiado ? clienteId : "ninguno",
-                                fecha: serverTimestamp()
-                            });
-                        }
-                    }
-
-                    // Sobrescribimos el array completo en la BD con los stocks restados
-                    if (huboCambios) {
-                        await updateDoc(docRef, { variantes: variantesDb });
-                    }
+                    // Descontar del stock de la variante correspondiente en Firestore
+                    await updateDoc(doc(db, "inventario", item.idSabor), {
+                        [`precios.${item.precio}`]: increment(-item.cantidad)
+                    });
                 }
 
                 if (esFiado) await updateDoc(doc(db, "clientes", clienteId), { deuda: increment(totalVentaDinero) });
 
-                mostrarToast(esFiado ? "✅ Fiado guardado exitosamente" : "✅ Venta registrada", false);
-                window.carritoVenta = []; 
+                mostrarToast(esFiado ? "✅ Fiado guardado exitosamente" : "✅ Venta registrada con éxito", false);
+                window.carrito = {}; 
                 document.getElementById('check-fiado').checked = false;
                 toggleFiado(); 
-                window.actualizarInterfazVenta(); 
+                window.actualizarInterfaz(); 
                 window.cargarClientes(); 
-                window.cargarVistaStock();
                 
             } catch (error) { 
                 console.error(error);
@@ -485,7 +477,8 @@
 
     <!-- SCRIPT DE CONTROL DE VISTAS Y UI -->
     <script>
-        const PASSWORD_APP = "1234";
+        const PASSWORD_APP = "1234"; // Contraseña de acceso
+        window.carrito = {};
         let html5QrcodeScanner = null;
         let isProcessingScan = false;
 
@@ -494,7 +487,7 @@
                 document.getElementById("login-screen").style.display = "none";
                 setTimeout(() => { 
                     if(window.cargarClientes) window.cargarClientes(); 
-                    if(window.cargarVistaStock) window.cargarVistaStock();
+                    window.actualizarInterfaz();
                 }, 800);
             }
         };
@@ -505,13 +498,13 @@
                 document.getElementById("login-screen").style.display = "none";
                 setTimeout(() => { 
                     if(window.cargarClientes) window.cargarClientes(); 
-                    if(window.cargarVistaStock) window.cargarVistaStock();
                 }, 500);
             } else {
                 document.getElementById("login-error").style.display = "block";
             }
         };
 
+        // Mostrar u ocultar selector de clientes solo si es fiado
         window.toggleFiado = function() {
             const isChecked = document.getElementById('check-fiado').checked;
             const select = document.getElementById('select-cliente');
@@ -522,35 +515,17 @@
         window.abrirModalNuevoSabor = function() {
             document.getElementById('modal-nuevo-sabor').style.display = 'flex';
             document.getElementById('input-nuevo-sabor').value = '';
-            document.getElementById('chk-1000').checked = false;
-            document.getElementById('chk-2500').checked = false;
-            document.getElementById('chk-3500').checked = false;
-            validarCheckboxes();
+            document.getElementById('input-nuevo-sabor').focus();
         };
         window.cerrarModalNuevoSabor = function() {
             document.getElementById('modal-nuevo-sabor').style.display = 'none';
         };
 
-        // Lógica de exclusión de checkboxes
-        window.validarCheckboxes = function() {
-            const c1000 = document.getElementById("chk-1000");
-            const c2500 = document.getElementById("chk-2500");
-            const c3500 = document.getElementById("chk-3500");
-
-            if (c3500.checked) {
-                c1000.checked = false; c2500.checked = false;
-                c1000.disabled = true; c2500.disabled = true;
-            } else {
-                c1000.disabled = false; c2500.disabled = false;
-                c3500.disabled = (c1000.checked || c2500.checked);
-            }
-        };
-
         window.copiarRecordatorio = function(nombre, deuda) {
             const mensaje = `Hola ${nombre}, ¿cómo estás? Te escribo para recordarte que tienes un saldo pendiente por los heladitos de $${deuda.toLocaleString('es-CO')}. Cuando puedas me haces el paguito 🙏. ¡Gracias y bendiciones!`;
             navigator.clipboard.writeText(mensaje).then(() => {
-                mostrarToast(`✅ Mensaje copiado`, false);
-            }).catch(err => alert("No se pudo copiar el mensaje."));
+                mostrarToast(`✅ Mensaje para ${nombre} copiado`, false);
+            }).catch(err => alert("No se pudo copiar el mensaje automáticamente."));
         };
 
         function playBeep() {
@@ -574,168 +549,111 @@
             const btnNav = document.getElementById(`btn-${viewName}`);
             if(btnNav) btnNav.classList.add('active');
 
-            // Mostrar botón flotante solo en Stock
-            document.getElementById('btn-fab-stock').style.display = (viewName === 'stock') ? 'flex' : 'none';
-
             if (viewName === 'scanner') startScanner();
             else stopScanner();
+
+            if (viewName === 'deudas' && window.cargarClientes) window.cargarClientes();
+            if (viewName === 'ingreso' && window.cargarSaboresInventario) window.cargarSaboresInventario();
+            if (viewName === 'stock' && window.cargarVistaStock) window.cargarVistaStock();
         };
 
-        // Escáner QR y Simulador
-        window.simularEscaneoQR = function(idSabor) {
-            procesarEscaneo(idSabor);
-        };
-
+        // Escáner QR de helados (El QR puede venir configurado con formato "sabor_precio", ej: "fresa_2500")
         function startScanner() {
             if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader");
             html5QrcodeScanner.start(
                 { facingMode: "environment" }, { fps: 10, qrbox: { width: 230, height: 230 } },
-                (textoDecodificado) => {
+                async (textoDecodificado) => {
                     if (isProcessingScan) return;
                     isProcessingScan = true;
-                    procesarEscaneo(textoDecodificado.trim().toLowerCase());
-                    setTimeout(() => { isProcessingScan = false; }, 2000); 
+
+                    // Separar texto del QR. Ejemplo formato esperado: "fresa_2500" o si es texto simple asume 2500 por defecto
+                    let partes = textoDecodificado.trim().toLowerCase().split('_');
+                    let idSabor = partes[0];
+                    let precioHelado = partes[1] ? parseInt(partes[1]) : 2500;
+                    let cartKey = `${idSabor}_${precioHelado}`;
+
+                    const cantidadEnCarrito = window.carrito[cartKey] ? window.carrito[cartKey].cantidad : 0;
+
+                    try {
+                        const docRef = window.doc(window.db, "inventario", idSabor);
+                        const docSnap = await window.getDoc(docRef);
+
+                        if (docSnap.exists()) {
+                            const datosDoc = docSnap.data();
+                            const preciosStock = datosDoc.precios || { 1000: 0, 2500: 0, 3500: 0 };
+                            const stockDisponible = preciosStock[precioHelado] || 0;
+
+                            if (stockDisponible > cantidadEnCarrito) {
+                                playBeep();
+                                if (window.carrito[cartKey]) {
+                                    window.carrito[cartKey].cantidad++;
+                                } else {
+                                    window.carrito[cartKey] = {
+                                        idSabor: idSabor,
+                                        nombre: datosDoc.nombre,
+                                        precio: precioHelado,
+                                        cantidad: 1,
+                                        maxStock: stockDisponible
+                                    };
+                                }
+                                mostrarToast(`Añadido: ${datosDoc.nombre} ($${precioHelado})`, false);
+                                actualizarInterfaz();
+                            } else {
+                                playErrorBeep(); mostrarToast(`❌ Sin stock para de $${precioHelado}`, true);
+                            }
+                        } else {
+                            playErrorBeep(); mostrarToast("❌ Helado no registrado en el sistema", true);
+                        }
+                    } catch (err) { 
+                        console.error(err);
+                        mostrarToast("⚠️ Error verificando inventario", true); 
+                    }
+
+                    setTimeout(() => { isProcessingScan = false; }, 1500); 
                 },
                 (error) => {}
-            ).catch(err => alert("Permite el uso de la cámara para escanear."));
+            ).catch(err => alert("Permite el uso de la cámara para poder escanear."));
         }
+
         function stopScanner() { if (html5QrcodeScanner && html5QrcodeScanner.isScanning) html5QrcodeScanner.stop(); }
 
-        async function procesarEscaneo(idSaborBuscado) {
-            // Buscamos en el caché local que se cargó al abrir la app
-            const productoBase = window.dbSaboresLocal.find(s => s.id === idSaborBuscado);
-            
-            if (productoBase) {
-                playBeep();
-                // Verificamos si ya está en el carrito
-                let itemExistente = window.carritoVenta.find(i => i.id === productoBase.id);
-                
-                if (!itemExistente) {
-                    // Creamos una copia profunda y preparamos las variantes para Venta
-                    let itemCarrito = JSON.parse(JSON.stringify(productoBase));
-                    itemCarrito.variantes.forEach(v => {
-                        v.cantidad_pedida = 0;
-                        v.seleccionado = false;
-                        // Si solo tiene 1 variante, la auto-seleccionamos y sumamos 1
-                        if(itemCarrito.variantes.length === 1 && v.stock > 0) {
-                            v.cantidad_pedida = 1;
-                            v.seleccionado = true;
-                        }
-                    });
-                    window.carritoVenta.push(itemCarrito);
-                } else if (itemExistente.variantes.length === 1) {
-                    // Si ya existe y es de variante única, simplemente sumamos 1
-                    let v = itemExistente.variantes[0];
-                    if (v.cantidad_pedida < v.stock) v.cantidad_pedida++;
-                    else mostrarToast("❌ Sin stock suficiente", true);
-                }
-                
-                mostrarToast(`Añadido: ${productoBase.nombre}`, false);
-                switchView('list'); // Pasamos a la pestaña de venta
-                actualizarInterfazVenta();
-            } else {
-                playErrorBeep();
-                mostrarToast(`❌ Helado no encontrado en Stock`, true);
-            }
-        }
-
-        // --- LÓGICA DE VENTAS (CARRITO) ---
-        window.actualizarCantidadVenta = function(itemIndex, varianteIndex, operacion) {
-            let variante = window.carritoVenta[itemIndex].variantes[varianteIndex];
-            if (operacion === '+' && variante.cantidad_pedida < variante.stock) {
-                variante.cantidad_pedida++;
-                variante.seleccionado = true;
-            } else if (operacion === '-' && variante.cantidad_pedida > 0) {
-                variante.cantidad_pedida--;
-                if(variante.cantidad_pedida === 0) variante.seleccionado = false;
-            } else if (operacion === '+' && variante.cantidad_pedida >= variante.stock) {
-                mostrarToast("❌ Stock insuficiente", true);
-            }
-            actualizarInterfazVenta();
-        };
-
-        window.toggleCheckVenta = function(itemIndex, varianteIndex) {
-            let variante = window.carritoVenta[itemIndex].variantes[varianteIndex];
-            variante.seleccionado = !variante.seleccionado;
-            if(variante.seleccionado && variante.cantidad_pedida === 0) {
-                if(variante.stock > 0) variante.cantidad_pedida = 1;
-                else {
-                    mostrarToast("❌ No hay stock", true);
-                    variante.seleccionado = false;
-                }
-            } else if (!variante.seleccionado) {
-                variante.cantidad_pedida = 0;
-            }
-            actualizarInterfazVenta();
-        };
-
-        window.actualizarInterfazVenta = function() {
-            const contenedor = document.getElementById("cart-container");
+        // Actualizar la vista de la lista de venta actual
+        window.actualizarInterfaz = function() {
+            const contenedor = document.getElementById('cart-container');
             const btnSubir = document.getElementById('btn-subir');
-            contenedor.innerHTML = "";
-            let hayItemsActivos = false;
+            contenedor.innerHTML = '';
+            let totalItems = 0;
 
-            if (window.carritoVenta.length === 0) {
-                contenedor.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">No hay helados en la lista actual.</p>';
-                btnSubir.disabled = true;
-                return;
+            for (const [key, item] of Object.entries(window.carrito)) {
+                if(item.cantidad > 0) totalItems++;
+                const div = document.createElement('div'); div.className = 'card-item';
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight: 600; text-transform: capitalize;">${item.nombre}</div>
+                        <div style="font-size: var(--font-size-small); color: var(--primary); font-weight: bold;">Precio: $${item.precio.toLocaleString('es-CO')}</div>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="btn-qty" onclick="cambiarCantidad('${key}', -1)">-</button>
+                        <span style="font-weight:bold;">${item.cantidad}</span>
+                        <button class="btn-qty" onclick="cambiarCantidad('${key}', 1)">+</button>
+                    </div>`;
+                contenedor.appendChild(div);
             }
 
-            window.carritoVenta.forEach((item, itemIndex) => {
-                const div = document.createElement("div");
-                div.className = "card-item";
-                div.style.flexDirection = "column";
-                div.style.alignItems = "stretch";
+            btnSubir.disabled = totalItems === 0;
+            if(totalItems === 0) contenedor.innerHTML = '<p style="text-align:center; color:#888; padding: 20px;">Escanea un código QR para empezar a vender</p>';
+        };
 
-                // Caso A: Sabor de Precio Único
-                if (item.variantes.length === 1) {
-                    let v = item.variantes[0];
-                    if(v.cantidad_pedida > 0) hayItemsActivos = true;
-                    
-                    div.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <div style="font-weight: 600;">${item.nombre}</div>
-                                <div style="font-size: var(--font-size-small); color: var(--primary); font-weight: bold;">Precio: $${v.precio.toLocaleString('es-CO')}</div>
-                            </div>
-                            <div class="qty-controls">
-                                <button class="btn-qty" onclick="actualizarCantidadVenta(${itemIndex}, 0, '-')">-</button>
-                                <span style="font-weight:bold;">${v.cantidad_pedida}</span>
-                                <button class="btn-qty" onclick="actualizarCantidadVenta(${itemIndex}, 0, '+')">+</button>
-                            </div>
-                        </div>
-                    `;
-                } 
-                // Caso B: Sabor con Múltiples Precios
-                else {
-                    let titleHTML = `<div style="font-weight: 600; margin-bottom: 5px;">${item.nombre}</div>`;
-                    let filasHTML = "";
-                    
-                    item.variantes.forEach((v, vIndex) => {
-                        if(v.cantidad_pedida > 0) hayItemsActivos = true;
-                        let checkedStr = v.seleccionado ? "checked" : "";
-                        
-                        filasHTML += `
-                            <div class="venta-row">
-                                <label style="font-size:var(--font-size-small); display:flex; align-items:center; gap:5px;">
-                                    <input type="checkbox" ${checkedStr} onchange="toggleCheckVenta(${itemIndex}, ${vIndex})"> 
-                                    $${v.precio.toLocaleString('es-CO')} <span style="color:#888;">(Max: ${v.stock})</span>
-                                </label>
-                                <div class="qty-controls" style="transform: scale(0.9); transform-origin: right;">
-                                    <button class="btn-qty" onclick="actualizarCantidadVenta(${itemIndex}, ${vIndex}, '-')">-</button>
-                                    <span style="font-weight:bold;">${v.cantidad_pedida}</span>
-                                    <button class="btn-qty" onclick="actualizarCantidadVenta(${itemIndex}, ${vIndex}, '+')">+</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-
-                    div.innerHTML = `${titleHTML}${filasHTML}`;
+        window.cambiarCantidad = function(key, cambio) {
+            if (window.carrito[key]) {
+                const nuevaCantidad = window.carrito[key].cantidad + cambio;
+                if (nuevaCantidad > window.carrito[key].maxStock) {
+                    mostrarToast("❌ No hay más inventario disponible", true); return;
                 }
-                contenedor.appendChild(div);
-            });
-
-            btnSubir.disabled = !hayItemsActivos;
+                window.carrito[key].cantidad = nuevaCantidad;
+                if (window.carrito[key].cantidad <= 0) delete window.carrito[key];
+                actualizarInterfaz();
+            }
         };
 
         window.mostrarToast = function(mensaje, isError = false) {
@@ -743,7 +661,7 @@
             toast.innerText = mensaje;
             if (isError) toast.classList.add('error'); else toast.classList.remove('error');
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000); // Toast de 2 segundos exactos
+            setTimeout(() => toast.classList.remove('show'), 2200);
         };
     </script>
 </body>
