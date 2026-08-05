@@ -6,11 +6,8 @@
     <title>Control de Helados</title>
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        /* ==========================================
-           VARIABLES GLOBALES Y CONFIGURACIÓN BASE
-           ========================================== */
         :root {
-            --primary: #D32F2F; /* Rojo estilo pin para el escáner principal */
+            --primary: #2E7D32;
             --secondary: #4CAF50;
             --accent: #FF9800;
             --warning: #F44336;
@@ -19,138 +16,155 @@
             --card-bg: #FFFFFF;
             --text-main: #2D3436;
             --border-radius: 12px;
-            
-            --font-size-base: 0.95rem;
-            --font-size-small: 0.85rem;
+            /* Variable global para controlar el tamaño general de las fuentes */
+            --font-base: 0.92rem; 
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; font-size: var(--font-size-base); }
-        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 110px; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 100px; font-size: var(--font-base); }
 
+        /* HEADER */
         header { 
             background-color: var(--card-bg); padding: 15px; text-align: center; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative;
+            display: flex; justify-content: center; align-items: center;
         }
-        h1 { color: var(--text-main); font-size: 1.3rem; margin: 0; font-weight: 700; }
+        h1 { color: var(--primary); font-size: 1.25rem; text-align: center; margin: 0; }
+        h2 { font-size: 1.2rem; }
+        h3 { font-size: 1.1rem; }
 
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         .view { display: none; }
         .view.active { display: block; }
 
-        h2 { font-size: 1.15rem; font-weight: 600; margin-bottom: 12px; color: var(--text-main); }
-
-        /* PANTALLA DE LOGIN */
+        /* Login Screen */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .login-box { background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 320px;}
-        .login-box input { padding: 10px; margin: 15px 0; width: 100%; font-size: 1.1rem; text-align: center; border: 1px solid #ccc; border-radius: 8px;}
-        .login-box button { background: var(--primary); color: white; border: none; padding: 12px 20px; font-size: 1rem; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;}
+        .login-box { background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;}
+        .login-box input { padding: 10px; margin: 15px 0; width: 100%; font-size: calc(var(--font-base) + 0.1rem); text-align: center; border: 1px solid #ccc; border-radius: 8px;}
+        .login-box button { background: var(--primary); color: white; border: none; padding: 12px 20px; font-size: calc(var(--font-base) + 0.1rem); font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;}
 
-        /* COMPONENTES Y TARJETAS */
+        /* Escáner, Lista y Tarjetas */
         #reader { width: 100%; border-radius: var(--border-radius); overflow: hidden; background: #000; margin-bottom: 15px;}
-        .card-item { background: var(--card-bg); padding: 14px 16px; margin-bottom: 10px; border-radius: var(--border-radius); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.04);}
+        .card-item { background: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: var(--border-radius); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
         
-        .qty-controls { display: flex; align-items: center; gap: 12px; }
-        .btn-qty { background: #f0f0f0; border: none; width: 32px; height: 32px; border-radius: 5px; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;}
+        .qty-controls { display: flex; align-items: center; gap: 15px; }
+        .btn-qty { background: #f0f0f0; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: calc(var(--font-base) + 0.2rem); font-weight: bold; cursor: pointer; }
         
+        /* Sección de Fiado */
         .fiado-box { background: #fff3e0; padding: 15px; border-radius: var(--border-radius); margin-top: 20px; border: 1px solid #ffe0b2; }
-        .fiado-box label { font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer;}
-        .fiado-box select { width: 100%; padding: 10px; margin-top: 12px; border-radius: 8px; border: 1px solid #ccc; display: none; background: white;}
+        .fiado-box label { font-weight: bold; font-size: var(--font-base); display: flex; align-items: center; gap: 10px; cursor: pointer;}
+        .fiado-box select { width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; font-size: var(--font-base); border: 1px solid #ccc; display: none; }
         
-        .input-form { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #ccc; background: white; }
-        
-        .btn-submit { background: #333; color: white; border: none; padding: 14px; width: 100%; font-weight: bold; border-radius: var(--border-radius); margin-top: 10px; cursor: pointer;}
-        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
-        .btn-pay { background: var(--secondary); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: bold; cursor: pointer;}
-        .btn-message-icon { background: var(--info); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 1.1rem;}
+        /* Controles de Formularios */
+        .input-form { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: var(--font-base); }
+        .input-group-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .input-group-row select { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: var(--font-base); }
+        .btn-add-flavor { background: var(--info); color: white; border: none; width: 45px; border-radius: 8px; font-size: calc(var(--font-base) + 0.4rem); cursor: pointer; display: flex; justify-content: center; align-items: center; }
 
-        /* ==========================================
-           BARRA DE NAVEGACIÓN (TIPO PINTEREST)
-           ========================================== */
-        .bottom-nav-container {
+        /* Botones Principales */
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; font-size: calc(var(--font-base) + 0.1rem); font-weight: bold; border-radius: var(--border-radius); margin-top: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);}
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
+        
+        .btn-pay { background: var(--secondary); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: var(--font-base);}
+        .btn-message-icon { background: var(--info); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: calc(var(--font-base) + 0.1rem);}
+
+        /* Navegación Inferior Estilo Píldora */
+        .bottom-nav-wrapper {
             position: fixed; bottom: 20px; left: 0; width: 100%;
-            display: flex; justify-content: center; z-index: 100;
+            display: flex; justify-content: center; z-index: 900;
+            pointer-events: none; /* Permite clics fuera de la píldora */
         }
         .bottom-nav {
-            background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px);
-            display: flex; padding: 8px 20px 8px 8px; border-radius: 50px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.05);
-            align-items: center; gap: 15px;
+            background: var(--card-bg);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 12px; border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            width: 92%; max-width: 450px; gap: 5px;
+            pointer-events: auto;
         }
         .nav-btn {
-            border: none; background: none; font-weight: 600;
-            color: #777; cursor: pointer; display: flex; flex-direction: column; align-items: center;
-            font-size: 0.75rem; transition: color 0.2s;
+            background: none; border: none; color: #888;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 0.75rem; cursor: pointer; transition: all 0.3s;
+            flex: 1; padding: 5px 0;
         }
-        .nav-btn i { font-size: 1.2rem; margin-bottom: 2px; font-style: normal; }
-        .nav-btn.active:not(.solid-main) { color: #111; }
+        .nav-btn .icon { font-size: 1.4rem; margin-bottom: 4px; transition: 0.2s; }
+        .nav-btn.active { color: var(--text-main); font-weight: bold; }
+        .nav-btn.active .icon { transform: scale(1.1); color: var(--text-main); }
         
-        /* BOTÓN DESTACADO A LA IZQUIERDA */
-        .nav-btn.solid-main {
-            background-color: var(--primary);
-            color: white;
-            border-radius: 40px;
-            padding: 10px 20px;
-            flex-direction: row; gap: 8px; font-size: 1rem;
-            box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3);
-            margin-right: 5px;
+        /* Botón Escanear (Más prominente) */
+        .nav-btn-main {
+            background: var(--primary); color: white !important;
+            flex-direction: row; border-radius: 30px;
+            padding: 10px 15px; flex: 1.6; gap: 8px;
+            font-weight: bold; font-size: 0.85rem;
         }
+        .nav-btn-main .icon { margin-bottom: 0; font-size: 1.2rem; color: white !important; }
+        .nav-btn-main.active { background: #1b5e20; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+        
+        .nav-text { display: inline-block; }
 
-        /* TOAST DE NOTIFICACIONES */
-        .toast { position: fixed; top: 75px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 50px; opacity: 0; transition: opacity 0.2s; z-index: 1000; pointer-events: none; font-weight: 500;}
+        /* Toasts */
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 20px; border-radius: 50px; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none; font-size: var(--font-base);}
         .toast.show { opacity: 1; }
         .toast.error { background: var(--warning); }
 
-        /* FORMULARIO DE AÑADIR EN STOCK */
-        .llenar-panel { background: #f0f4f8; padding: 15px; border-radius: var(--border-radius); border: 2px dashed #cfd8dc; margin-bottom: 20px;}
-        .checkbox-group { display: flex; flex-direction: column; gap: 10px; margin: 10px 0; }
-        .checkbox-group label { display: flex; align-items: center; gap: 8px; font-size: var(--font-size-base); color: #444;}
-        
-        /* INDICADORES DE STOCK */
-        .indicator { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-left: auto; }
-        .indicator.red { background-color: var(--warning); box-shadow: 0 0 5px rgba(244, 67, 54, 0.6); }
-        .indicator.yellow { background-color: #FFC107; box-shadow: 0 0 5px rgba(255, 193, 7, 0.6); }
-        .indicator.transparent { background-color: transparent; }
-
-        /* FILAS DE VARIANTE EN VENTA */
-        .venta-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding: 8px; background: #fafafa; border-radius: 8px; border: 1px solid #eee;}
+        /* Modal Flotante */
+        #modal-nuevo-sabor {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000;
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: white; padding: 25px; border-radius: 15px;
+            width: 90%; max-width: 350px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
 
-    <!-- PANTALLA DE ACCESO -->
+    <!-- PANTALLA DE LOGIN -->
     <div id="login-screen">
         <div class="login-box">
             <h2>🔒 Acceso Restringido</h2>
             <input type="password" id="pin-input" placeholder="Contraseña" inputmode="numeric">
             <button onclick="verificarLogin()">Entrar</button>
-            <p id="login-error" style="color:var(--warning); margin-top:10px; display:none; font-size: var(--font-size-small);">Contraseña incorrecta</p>
+            <p id="login-error" style="color:red; margin-top:10px; display:none; font-size: var(--font-base);">Contraseña incorrecta</p>
         </div>
     </div>
 
-    <!-- ENCABEZADO -->
+    <!-- MODAL NUEVO SABOR -->
+    <div id="modal-nuevo-sabor">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 5px;">Crear Nuevo Sabor</h3>
+            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Asegúrate de escribirlo bien</p>
+            <input type="text" id="input-nuevo-sabor" class="input-form" placeholder="Ej. Parchita" autocomplete="off">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-submit" style="background: #999; margin-top: 0;" onclick="cerrarModalNuevoSabor()">Cancelar</button>
+                <button class="btn-submit" style="background: var(--info); margin-top: 0;" onclick="guardarNuevoSaborBD()">Crear</button>
+            </div>
+        </div>
+    </div>
+
     <header>
-        <h1>Control de Helados 🍦</h1>
+        <h1>Helados</h1>
     </header>
 
     <div id="toast" class="toast">Mensaje</div>
 
     <div class="container">
-        
-        <!-- VISTA 1: ESCANEAR QR -->
-        <div id="view-scanner" class="view active">
-            <h2>Escanear Helado</h2>
+        <!-- VISTA: ESCANEAR -->
+        <div id="view-scanner" class="view">
+            <h2 style="margin-bottom: 10px; text-align: center;">Escanear QR</h2>
             <div id="reader"></div>
-            <p style="text-align: center; color: #666; font-size: var(--font-size-small); margin-top:15px;">Apunta al código QR. El sabor se añadirá a la pestaña Venta para que selecciones cantidad y precio.</p>
-            <button class="btn-submit" style="background: #555; margin-top:20px;" onclick="simularEscaneoQR('batibati')">Simular Escaneo "BatiBati" (Para PC)</button>
         </div>
 
-        <!-- VISTA 2: LISTA ACTUAL DE VENTA -->
-        <div id="view-list" class="view">
-            <h2>Venta Actual</h2>
-            <div id="cart-container">
-                <p style="text-align:center; color:#888; padding: 20px;">No hay helados escaneados.</p>
-            </div>
+        <!-- VISTA: VENTA (Antes Lista) -->
+        <div id="view-list" class="view active">
+            <h2 style="margin-bottom: 15px;">Helados a Registrar</h2>
+            <div id="cart-container"></div>
             
+            <!-- CAJA DE FIADO -->
             <div class="fiado-box">
                 <label>
                     <input type="checkbox" id="check-fiado" onchange="toggleFiado()">
@@ -161,117 +175,86 @@
                 </select>
             </div>
 
-            <button id="btn-subir" class="btn-submit" style="background: var(--secondary);" onclick="subirBaseDeDatos()" disabled>
-                ☁️ Procesar Venta
+            <button id="btn-subir" class="btn-submit" onclick="subirBaseDeDatos()" disabled>
+                ☁️ Subir Ventas a Base de Datos
             </button>
         </div>
 
-        <!-- VISTA 3: DISPONIBILIDAD EN STOCK -->
-        <div id="view-stock" class="view">
-            
-            <!-- NUEVA SECCIÓN DE LLENAR INTEGRADA ARRIBA -->
-            <div class="llenar-panel">
-                <h3 style="font-size: 1rem; color: #333; margin-bottom: 10px;">➕ Añadir Nuevo Sabor</h3>
-                <input type="text" id="input-nuevo-sabor" class="input-form" placeholder="Ej. BatiBati" autocomplete="off">
-                <div class="checkbox-group" id="container-precios-llenar">
-                    <!-- Los checkboxes se inyectan dinámicamente con JS -->
-                </div>
-                <button class="btn-submit" onclick="guardarNuevoSaborBD()">Guardar en Base de Datos</button>
-            </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 style="margin: 0;">Inventario Actual</h2>
-                <button onclick="cargarVistaStock()" style="background:none; border:none; color: var(--text-main); font-size:1.2rem; cursor:pointer;">🔄</button>
-            </div>
-            <div id="stock-container">
-                <p style="text-align:center; color:#888;">Cargando inventario...</p>
-            </div>
-        </div>
-
-        <!-- VISTA 4: LIBRETA DE DEUDAS -->
+        <!-- VISTA: DEUDAS -->
         <div id="view-deudas" class="view">
-            <h2 style="color: var(--accent);">Libreta de Deudas</h2>
+            <h2 style="margin-bottom: 15px; color: var(--accent);">Libreta de Deudas</h2>
             <div id="deudas-container">
-                <p style="text-align:center; color:#888;">Cargando clientes...</p>
+                <p style="font-size: var(--font-base);">Cargando clientes...</p>
             </div>
         </div>
 
+        <!-- VISTA: INGRESO DE INVENTARIO -->
+        <div id="view-ingreso" class="view">
+            <h2 style="margin-bottom: 15px; color: var(--info);">🛒 Ingresar al Inventario</h2>
+            <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <p style="margin-bottom: 15px; color: #666; font-size: var(--font-base);">Selecciona un sabor existente y suma la cantidad.</p>
+                
+                <div class="input-group-row">
+                    <select id="select-ingreso-sabor">
+                        <option value="">Cargando sabores...</option>
+                    </select>
+                    <button class="btn-add-flavor" onclick="abrirModalNuevoSabor()" title="Crear nuevo sabor">+</button>
+                </div>
+                
+                <input type="number" id="ingreso-cantidad" class="input-form" placeholder="Cantidad a sumar (ej. 10)" inputmode="numeric">
+                
+                <button class="btn-submit" style="background: var(--info);" onclick="guardarInventario()">
+                    ➕ Sumar al Inventario
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- BARRA DE NAVEGACIÓN INFERIOR (TIPO PINTEREST) -->
-    <div class="bottom-nav-container">
-        <nav class="bottom-nav">
-            <!-- Botón de Escaneo Destacado -->
-            <button class="nav-btn solid-main active" onclick="switchView('scanner')" id="btn-scanner">
-                <i>📷</i> <span>Escaneo</span>
+    <!-- NAVEGACIÓN INFERIOR (Píldora Flotante) -->
+    <div class="bottom-nav-wrapper">
+        <div class="bottom-nav">
+            <!-- 1. Escanear (Prominente) -->
+            <button class="nav-btn nav-btn-main" onclick="switchView('scanner')" id="btn-scanner">
+                <span class="icon">📷</span> <span class="nav-text">Escanear</span>
             </button>
-            
-            <button class="nav-btn" onclick="switchView('list')" id="btn-list">
-                <i>🛒</i> <span>Venta</span>
+            <!-- 2. Venta (Secundario) -->
+            <button class="nav-btn active" onclick="switchView('list')" id="btn-list">
+                <span class="icon">📋</span> <span class="nav-text">Venta</span>
             </button>
-            <button class="nav-btn" onclick="switchView('stock')" id="btn-stock">
-                <i>📦</i> <span>Stock</span>
+            <!-- 3. Llenar (Solo ícono) -->
+            <button class="nav-btn" onclick="switchView('ingreso')" id="btn-ingreso" title="Llenar Inventario">
+                <span class="icon">🛒</span>
             </button>
-            <button class="nav-btn" onclick="switchView('deudas')" id="btn-deudas">
-                <i>📒</i> <span>Deudas</span>
+            <!-- 4. Deudas (Solo ícono) -->
+            <button class="nav-btn" onclick="switchView('deudas')" id="btn-deudas" title="Ver Deudas">
+                <span class="icon">📓</span>
             </button>
-        </nav>
+        </div>
     </div>
 
-    <!-- SCRIPT DE FIREBASE Y LÓGICA -->
+    <!-- SCRIPT DE FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
-  authDomain: "helados-0612.firebaseapp.com",
-  projectId: "helados-0612",
-  storageBucket: "helados-0612.firebasestorage.app",
-  messagingSenderId: "683985818004",
-  appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
-  measurementId: "G-BVR8BXKPDR"
-};
+        // ==========================================
+        // AQUÍ VAN TUS CLAVES DE FIREBASE
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
+            authDomain: "helados-0612.firebaseapp.com",
+            projectId: "helados-0612",
+            storageBucket: "helados-0612.firebasestorage.app",
+            messagingSenderId: "683985818004",
+            appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
+            measurementId: "G-BVR8BXKPDR"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         window.db = db;
 
-        window.carritoVenta = [];
-        window.dbSaboresLocal = [];
-
-        /* ==================================================================
-           CONFIGURACIÓN DEL PROGRAMADOR: 
-           Cambia a true si quieres habilitar la venta y creación de helados de 1000
-           ================================================================== */
-        const HABILITAR_PRECIO_1000 = false;
-        
-        window.inicializarUI = function() {
-            const container = document.getElementById("container-precios-llenar");
-            container.innerHTML = "";
-            if (HABILITAR_PRECIO_1000) {
-                container.innerHTML += `<label><input type="checkbox" id="chk-1000" onchange="validarCheckboxesLlenar()"> Variante $1.000</label>`;
-            }
-            container.innerHTML += `
-                <label><input type="checkbox" id="chk-2500" onchange="validarCheckboxesLlenar()"> Variante $2.500</label>
-                <label><input type="checkbox" id="chk-3500" onchange="validarCheckboxesLlenar()"> Helado Especial $3.500</label>
-            `;
-        };
-        
-        window.validarCheckboxesLlenar = function() {
-            const c1000 = document.getElementById("chk-1000");
-            const c2500 = document.getElementById("chk-2500");
-            const c3500 = document.getElementById("chk-3500");
-
-            if (c3500.checked) {
-                if(c1000) { c1000.checked = false; c1000.disabled = true; }
-                c2500.checked = false; c2500.disabled = true;
-            } else {
-                if(c1000) c1000.disabled = false;
-                c2500.disabled = false;
-            }
-        };
-
+        // ===== CLIENTES Y DEUDAS =====
         window.cargarClientes = async function() {
             try {
                 const querySnapshot = await getDocs(collection(db, "clientes"));
@@ -285,6 +268,7 @@ const firebaseConfig = {
                 querySnapshot.forEach((docSnap) => {
                     const id = docSnap.id;
                     const datos = docSnap.data();
+                    
                     select.innerHTML += `<option value="${id}">${datos.nombre}</option>`;
 
                     if (datos.deuda > 0) {
@@ -292,103 +276,106 @@ const firebaseConfig = {
                         contenedorDeudas.innerHTML += `
                             <div class="card-item" style="border-left: 5px solid var(--accent);">
                                 <div>
-                                    <div style="font-weight:600;">${datos.nombre}</div>
-                                    <div style="color:var(--accent); font-weight:bold; font-size: var(--font-size-small);">Debe: $${datos.deuda.toLocaleString('es-CO')}</div>
+                                    <div style="font-weight:bold; font-size:1.05rem;">${datos.nombre}</div>
+                                    <div style="color:var(--accent); font-weight:bold; font-size: var(--font-base);">Debe: $${datos.deuda.toLocaleString('es-CO')}</div>
                                 </div>
-                                <button class="btn-pay" onclick="abonarDeuda('${id}', '${datos.nombre}', ${datos.deuda})">Abonar</button>
+                                <div style="display:flex; gap:8px;">
+                                    <button class="btn-message-icon" onclick="copiarRecordatorio('${datos.nombre}', ${datos.deuda})" title="Enviar WhatsApp">💬</button>
+                                    <button class="btn-pay" onclick="abonarDeuda('${id}', '${datos.nombre}', ${datos.deuda})">Abonar</button>
+                                </div>
                             </div>
                         `;
                     }
                 });
 
-                if(!hayDeudas) contenedorDeudas.innerHTML = '<p style="text-align:center; color:#888;">No hay deudas pendientes 🎉</p>';
+                if(!hayDeudas) contenedorDeudas.innerHTML = '<p style="text-align:center; color:#888; font-size: var(--font-base);">No hay deudas pendientes 🎉</p>';
+            } catch (error) { console.error(error); }
+        };
+
+        window.abonarDeuda = async function(id, nombre, deudaActual) {
+            let monto = prompt(`💰 Deuda actual de ${nombre}: $${deudaActual.toLocaleString('es-CO')}\n¿Cuánto dinero va a abonar/pagar hoy?`, deudaActual);
+            if (monto === null || monto.trim() === "") return;
+            monto = parseInt(monto.replace(/\./g, ''));
+            if (isNaN(monto) || monto <= 0) return alert("❌ Monto inválido");
+            if (monto > deudaActual) return alert("❌ No puede abonar más dinero del que debe.");
+
+            try {
+                await updateDoc(doc(db, "clientes", id), { deuda: increment(-monto) });
+                mostrarToast(`✅ Abono de $${monto} registrado`, false);
+                cargarClientes();
+            } catch (error) { alert("Error al procesar el pago."); }
+        };
+
+        // ===== INVENTARIO: MENÚ DESPLEGABLE Y CREACIÓN =====
+        window.cargarSaboresInventario = async function() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "inventario"));
+                const select = document.getElementById('select-ingreso-sabor');
+                select.innerHTML = '<option value="">Selecciona un sabor...</option>';
+                
+                let sabores = [];
+                querySnapshot.forEach((docSnap) => {
+                    sabores.push({ id: docSnap.id, nombre: docSnap.data().nombre });
+                });
+                
+                sabores.sort((a, b) => a.nombre.localeCompare(b.nombre));
+                
+                sabores.forEach(sabor => {
+                    select.innerHTML += `<option value="${sabor.id}">${sabor.nombre}</option>`;
+                });
             } catch (error) { console.error(error); }
         };
 
         window.guardarNuevoSaborBD = async function() {
-            const nombre = document.getElementById("input-nuevo-sabor").value.trim();
-            const c1000 = document.getElementById("chk-1000") ? document.getElementById("chk-1000").checked : false;
-            const c2500 = document.getElementById("chk-2500").checked;
-            const c3500 = document.getElementById("chk-3500").checked;
+            const inputSabor = document.getElementById('input-nuevo-sabor').value.trim();
+            if (inputSabor === "") return alert("⚠️ Escribe un nombre para el helado.");
 
-            if(!nombre) return alert("⚠️ Escribe un nombre para el helado.");
-
-            let nuevasVariantes = [];
-            if (c1000) nuevasVariantes.push({ precio: 1000, stock: 5 }); 
-            if (c2500) nuevasVariantes.push({ precio: 2500, stock: 5 }); 
-            if (c3500) nuevasVariantes.push({ precio: 3500, stock: 5 }); 
-
-            if(nuevasVariantes.length === 0) return alert("⚠️ Selecciona al menos un precio.");
-
-            const saborID = nombre.toLowerCase().replace(/\s+/g, '_');
-            const saborBonito = nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase();
+            const saborID = inputSabor.toLowerCase();
+            const saborBonito = inputSabor.charAt(0).toUpperCase() + inputSabor.slice(1).toLowerCase();
 
             try {
                 const docRef = doc(db, "inventario", saborID);
                 const docSnap = await getDoc(docRef);
 
-                if (docSnap.exists()) return alert("⚠️ Ese sabor ya existe en el sistema.");
+                if (docSnap.exists()) {
+                    alert("⚠️ Ese sabor ya existe en el sistema.");
+                    return;
+                }
 
-                await setDoc(docRef, { nombre: saborBonito, variantes: nuevasVariantes });
+                await setDoc(docRef, { nombre: saborBonito, stock: 0 });
                 
-                mostrarToast(`✅ Sabor añadido`, false);
+                mostrarToast(`✅ ¡Sabor ${saborBonito} creado!`, false);
+                cerrarModalNuevoSabor();
                 
-                // Limpiar inputs
-                document.getElementById("input-nuevo-sabor").value = '';
-                if(document.getElementById("chk-1000")) document.getElementById("chk-1000").checked = false;
-                document.getElementById("chk-2500").checked = false;
-                document.getElementById("chk-3500").checked = false;
-                validarCheckboxesLlenar();
+                await cargarSaboresInventario();
+                document.getElementById('select-ingreso-sabor').value = saborID;
+                document.getElementById('ingreso-cantidad').focus(); 
 
-                cargarVistaStock(); 
             } catch (error) { alert("Error creando el sabor."); }
         };
 
-        window.cargarVistaStock = async function() {
+        window.guardarInventario = async function() {
+            const idSabor = document.getElementById('select-ingreso-sabor').value;
+            const inputCantidad = parseInt(document.getElementById('ingreso-cantidad').value);
+
+            if (idSabor === "") return alert("⚠️ Selecciona un sabor de la lista.");
+            if (isNaN(inputCantidad) || inputCantidad <= 0) return alert("⚠️ Ingresa una cantidad mayor a 0.");
+
             try {
-                const querySnapshot = await getDocs(collection(db, "inventario"));
-                const contenedorStock = document.getElementById('stock-container');
-                contenedorStock.innerHTML = '';
-                window.dbSaboresLocal = [];
-                let hayStock = false;
-
-                querySnapshot.forEach((docSnap) => {
-                    const datos = docSnap.data();
-                    window.dbSaboresLocal.push({ id: docSnap.id, ...datos });
-                    
-                    const variantes = datos.variantes || [];
-                    
-                    // Cálculo de indicador usando el stock total con un IF como pediste
-                    let totalStockSabor = 0;
-                    for (let i = 0; i < variantes.length; i++) {
-                        totalStockSabor += variantes[i].stock;
-                    }
-
-                    let colorIndicador = "transparent";
-                    if (totalStockSabor === 0) {
-                        colorIndicador = "red";
-                    } else if (totalStockSabor < 3) {
-                        colorIndicador = "yellow";
-                    }
-
-                    let htmlPrecios = variantes.map(v => `$${v.precio.toLocaleString('es-CO')} <span style="color:#888;">(Cant: ${v.stock})</span>`).join(" | ");
-
-                    hayStock = true;
-                    contenedorStock.innerHTML += `
-                        <div class="card-item" style="flex-direction: row; align-items: center;">
-                            <div style="flex:1;">
-                                <div style="font-weight: 700; font-size: 1.05rem; color: #2D3436;">${datos.nombre}</div>
-                                <div style="font-size: var(--font-size-small); margin-top:3px;">${htmlPrecios}</div>
-                            </div>
-                            <div class="indicator ${colorIndicador}"></div>
-                        </div>
-                    `;
+                await updateDoc(doc(db, "inventario", idSabor), {
+                    stock: increment(inputCantidad)
                 });
 
-                if(!hayStock) contenedorStock.innerHTML = '<p style="text-align:center; color:#888;">No hay sabores registrados.</p>';
-            } catch (error) { console.error(error); }
+                mostrarToast(`✅ ¡Añadidos ${inputCantidad} al inventario!`, false);
+                
+                document.getElementById('select-ingreso-sabor').value = "";
+                document.getElementById('ingreso-cantidad').value = "";
+                switchView('list');
+
+            } catch (error) { alert("Error guardando el inventario."); }
         };
 
+        // ===== SUBIR VENTAS =====
         window.subirBaseDeDatos = async function() {
             const btn = document.getElementById('btn-subir');
             const esFiado = document.getElementById('check-fiado').checked;
@@ -398,68 +385,44 @@ const firebaseConfig = {
 
             try {
                 let totalVentaDinero = 0;
-                
-                for (const item of window.carritoVenta) {
-                    let huboCambios = false;
-                    const docRef = doc(db, "inventario", item.id);
-                    const docSnap = await getDoc(docRef);
-                    if(!docSnap.exists()) continue;
-                    
-                    let variantesDb = docSnap.data().variantes;
+                for (const sabor in window.carrito) {
+                    const item = window.carrito[sabor];
+                    if (item.cantidad <= 0) continue;
+                    totalVentaDinero += (item.cantidad * item.precio);
 
-                    for (const vCart of item.variantes) {
-                        if (vCart.cantidad_pedida > 0 && vCart.seleccionado) {
-                            totalVentaDinero += (vCart.cantidad_pedida * vCart.precio);
-                            
-                            let vDb = variantesDb.find(v => v.precio === vCart.precio);
-                            if(vDb) { vDb.stock -= vCart.cantidad_pedida; huboCambios = true; }
-
-                            await addDoc(collection(db, "ventas"), {
-                                sabor: item.nombre, 
-                                precioUnitario: vCart.precio,
-                                cantidad: vCart.cantidad_pedida,
-                                tipo: esFiado ? "fiado" : "contado", 
-                                cliente: esFiado ? clienteId : "ninguno",
-                                fecha: serverTimestamp()
-                            });
-                        }
-                    }
-                    if (huboCambios) await updateDoc(docRef, { variantes: variantesDb });
+                    await addDoc(collection(db, "ventas"), {
+                        sabor: item.nombre, cantidad: item.cantidad,
+                        tipo: esFiado ? "fiado" : "contado", cliente: esFiado ? clienteId : "ninguno",
+                        fecha: serverTimestamp()
+                    });
+                    await updateDoc(doc(db, "inventario", item.nombre), { stock: increment(-item.cantidad) });
                 }
 
                 if (esFiado) await updateDoc(doc(db, "clientes", clienteId), { deuda: increment(totalVentaDinero) });
 
-                mostrarToast(esFiado ? "✅ Fiado guardado" : "✅ Venta registrada", false);
-                window.carritoVenta = []; 
-                document.getElementById('check-fiado').checked = false;
-                toggleFiado(); 
-                window.actualizarInterfazVenta(); 
-                window.cargarClientes(); 
-                window.cargarVistaStock();
+                mostrarToast(esFiado ? "✅ Fiado guardado exitosamente" : "✅ Venta subida exitosamente", false);
+                window.carrito = {}; document.getElementById('check-fiado').checked = false;
+                toggleFiado(); window.actualizarInterfaz(); window.cargarClientes(); 
                 
-            } catch (error) { 
-                alert("Hubo un error subiendo los datos."); 
-            } finally { 
-                btn.innerText = "☁️ Procesar Venta"; 
-            }
+            } catch (error) { alert("Hubo un error subiendo los datos."); } 
+            finally { btn.innerText = "☁️ Subir Ventas a Base de Datos"; }
         };
 
         window.getDoc = getDoc; window.doc = doc;
     </script>
 
+    <!-- SCRIPT DE LÓGICA DE LA APP Y UI -->
     <script>
-        const PASSWORD_APP = "1234";
+        const PASSWORD_APP = "10545830";
+        const PRECIO_BASE = 2500;
+        window.carrito = {};
         let html5QrcodeScanner = null;
         let isProcessingScan = false;
 
         window.onload = () => {
-            if(window.inicializarUI) window.inicializarUI();
             if (localStorage.getItem("auth") === "true") {
                 document.getElementById("login-screen").style.display = "none";
-                setTimeout(() => { 
-                    if(window.cargarClientes) window.cargarClientes(); 
-                    if(window.cargarVistaStock) window.cargarVistaStock();
-                }, 800);
+                setTimeout(() => { if(window.cargarClientes) window.cargarClientes(); }, 1000);
             }
         };
 
@@ -467,10 +430,7 @@ const firebaseConfig = {
             if (document.getElementById("pin-input").value === PASSWORD_APP) {
                 localStorage.setItem("auth", "true");
                 document.getElementById("login-screen").style.display = "none";
-                setTimeout(() => { 
-                    if(window.cargarClientes) window.cargarClientes(); 
-                    if(window.cargarVistaStock) window.cargarVistaStock();
-                }, 500);
+                setTimeout(() => { if(window.cargarClientes) window.cargarClientes(); }, 500);
             } else {
                 document.getElementById("login-error").style.display = "block";
             }
@@ -483,7 +443,35 @@ const firebaseConfig = {
             if(!isChecked) select.value = "";
         };
 
-        // Navegación principal entre pestañas
+        window.abrirModalNuevoSabor = function() {
+            document.getElementById('modal-nuevo-sabor').style.display = 'flex';
+            document.getElementById('input-nuevo-sabor').value = ''; 
+            document.getElementById('input-nuevo-sabor').focus();
+        };
+        window.cerrarModalNuevoSabor = function() {
+            document.getElementById('modal-nuevo-sabor').style.display = 'none';
+        };
+
+        window.copiarRecordatorio = function(nombre, deuda) {
+            const numHelados = Math.floor(deuda / PRECIO_BASE);
+            const mensaje = `Hola ${nombre}, ¿cómo estás? Te escribo para recordarte que tienes ${numHelados} heladitos pendientes por ahí (son $${deuda.toLocaleString('es-CO')}). Cuando puedas me haces el pago 🙏, gracias`;
+            
+            navigator.clipboard.writeText(mensaje).then(() => {
+                mostrarToast(`✅ Mensaje para ${nombre} copiado`, false);
+            }).catch(err => alert("No se pudo copiar el mensaje. Dale permisos al navegador."));
+        };
+
+        function playBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime); 
+                osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.15);
+            } catch(e) {}
+            if (navigator.vibrate) navigator.vibrate(100);
+        }
+        function playErrorBeep() { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); }
+
         window.switchView = function(viewName) {
             document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -495,131 +483,84 @@ const firebaseConfig = {
 
             if (viewName === 'scanner') startScanner();
             else stopScanner();
-        };
 
-        window.simularEscaneoQR = function(idSabor) { procesarEscaneo(idSabor); };
+            if (viewName === 'deudas' && window.cargarClientes) window.cargarClientes();
+            if (viewName === 'ingreso' && window.cargarSaboresInventario) window.cargarSaboresInventario();
+        };
 
         function startScanner() {
             if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader");
             html5QrcodeScanner.start(
-                { facingMode: "environment" }, { fps: 10, qrbox: { width: 230, height: 230 } },
-                (textoDecodificado) => {
+                { facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
+                async (textoDecodificado) => {
                     if (isProcessingScan) return;
                     isProcessingScan = true;
-                    procesarEscaneo(textoDecodificado.trim().toLowerCase());
+
+                    const sabor = textoDecodificado.trim().toLowerCase();
+                    const cantidadEnCarrito = window.carrito[sabor] ? window.carrito[sabor].cantidad : 0;
+
+                    try {
+                        const docRef = window.doc(window.db, "inventario", sabor);
+                        const docSnap = await window.getDoc(docRef);
+
+                        if (docSnap.exists()) {
+                            const stockActual = docSnap.data().stock;
+                            if (stockActual > cantidadEnCarrito) {
+                                playBeep();
+                                if (window.carrito[sabor]) window.carrito[sabor].cantidad++;
+                                else window.carrito[sabor] = { nombre: sabor, cantidad: 1, precio: PRECIO_BASE, maxStock: stockActual };
+                                mostrarToast(`¡Helado de ${sabor} añadido!`, false);
+                                actualizarInterfaz();
+                            } else {
+                                playErrorBeep(); mostrarToast(`❌ Helado de ${sabor} sin inventario`, true);
+                            }
+                        } else {
+                            playErrorBeep(); mostrarToast("❌ Helado no registrado en sistema", true);
+                        }
+                    } catch (err) { mostrarToast("⚠️ Error verificando inventario", true); }
+
+                    // Cooldown ajustado a 2000 ms (2 segundos)
                     setTimeout(() => { isProcessingScan = false; }, 2000); 
                 },
                 (error) => {}
-            ).catch(err => alert("Permite el uso de la cámara."));
+            ).catch(err => alert("Da permisos de cámara para escanear."));
         }
+
         function stopScanner() { if (html5QrcodeScanner && html5QrcodeScanner.isScanning) html5QrcodeScanner.stop(); }
 
-        async function procesarEscaneo(idSaborBuscado) {
-            const productoBase = window.dbSaboresLocal.find(s => s.id === idSaborBuscado);
-            
-            if (productoBase) {
-                if (navigator.vibrate) navigator.vibrate(100);
-                
-                let itemExistente = window.carritoVenta.find(i => i.id === productoBase.id);
-                
-                if (!itemExistente) {
-                    let itemCarrito = JSON.parse(JSON.stringify(productoBase));
-                    itemCarrito.variantes.forEach(v => {
-                        v.cantidad_pedida = 0;
-                        v.seleccionado = false; // La señora siempre debe seleccionarlo manualmente
-                    });
-                    window.carritoVenta.push(itemCarrito);
-                    mostrarToast(`Añadido: ${productoBase.nombre} a la lista`, false);
-                } else {
-                    mostrarToast(`El sabor ya está en la lista`, false);
-                }
-                
-                switchView('list');
-                actualizarInterfazVenta();
-            } else {
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                mostrarToast(`❌ Helado no encontrado`, true);
-            }
-        }
-
-        window.actualizarCantidadVenta = function(itemIndex, varianteIndex, operacion) {
-            let variante = window.carritoVenta[itemIndex].variantes[varianteIndex];
-            if(!variante.seleccionado) {
-                mostrarToast("Primero marca la casilla del precio", true);
-                return;
-            }
-
-            if (operacion === '+' && variante.cantidad_pedida < variante.stock) {
-                variante.cantidad_pedida++;
-            } else if (operacion === '-' && variante.cantidad_pedida > 1) {
-                variante.cantidad_pedida--;
-            } else if (operacion === '+' && variante.cantidad_pedida >= variante.stock) {
-                mostrarToast("❌ Stock insuficiente", true);
-            }
-            actualizarInterfazVenta();
-        };
-
-        window.toggleCheckVenta = function(itemIndex, varianteIndex) {
-            let variante = window.carritoVenta[itemIndex].variantes[varianteIndex];
-            variante.seleccionado = !variante.seleccionado;
-            
-            if(variante.seleccionado) {
-                if(variante.stock > 0) variante.cantidad_pedida = 1;
-                else {
-                    mostrarToast("❌ No hay stock de este precio", true);
-                    variante.seleccionado = false;
-                }
-            } else {
-                variante.cantidad_pedida = 0;
-            }
-            actualizarInterfazVenta();
-        };
-
-        window.actualizarInterfazVenta = function() {
-            const contenedor = document.getElementById("cart-container");
+        window.actualizarInterfaz = function() {
+            const contenedor = document.getElementById('cart-container');
             const btnSubir = document.getElementById('btn-subir');
-            contenedor.innerHTML = "";
-            let hayItemsActivos = false;
+            contenedor.innerHTML = '';
+            let totalItems = 0;
 
-            if (window.carritoVenta.length === 0) {
-                contenedor.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">No hay helados en la lista actual.</p>';
-                btnSubir.disabled = true;
-                return;
+            for (const [idSabor, item] of Object.entries(window.carrito)) {
+                if(item.cantidad > 0) totalItems++;
+                const div = document.createElement('div'); div.className = 'card-item';
+                div.innerHTML = `
+                    <div style="font-size: 1.05rem; font-weight:bold; text-transform:capitalize;">${item.nombre}</div>
+                    <div class="qty-controls">
+                        <button class="btn-qty" onclick="cambiarCantidad('${idSabor}', -1)">-</button>
+                        <span style="font-size:1.15rem; font-weight:bold;">${item.cantidad}</span>
+                        <button class="btn-qty" onclick="cambiarCantidad('${idSabor}', 1)">+</button>
+                    </div>`;
+                contenedor.appendChild(div);
             }
 
-            window.carritoVenta.forEach((item, itemIndex) => {
-                const div = document.createElement("div");
-                div.className = "card-item";
-                div.style.flexDirection = "column";
-                div.style.alignItems = "stretch";
+            btnSubir.disabled = totalItems === 0;
+            if(totalItems === 0) contenedor.innerHTML = '<p style="text-align:center; color:#888; font-size: var(--font-base);">Escanea un QR para empezar</p>';
+        };
 
-                let titleHTML = `<div style="font-weight: 600; margin-bottom: 5px; color:#2D3436;">${item.nombre}</div>`;
-                let filasHTML = "";
-                
-                item.variantes.forEach((v, vIndex) => {
-                    if(v.seleccionado && v.cantidad_pedida > 0) hayItemsActivos = true;
-                    let checkedStr = v.seleccionado ? "checked" : "";
-                    
-                    filasHTML += `
-                        <div class="venta-row">
-                            <label style="font-size:var(--font-size-small); display:flex; align-items:center; gap:8px; font-weight: 500;">
-                                <input type="checkbox" style="transform: scale(1.2);" ${checkedStr} onchange="toggleCheckVenta(${itemIndex}, ${vIndex})"> 
-                                $${v.precio.toLocaleString('es-CO')} <span style="color:#888; font-weight: normal;">(Max: ${v.stock})</span>
-                            </label>
-                            <div class="qty-controls" style="${v.seleccionado ? '' : 'opacity: 0.4; pointer-events: none;'}">
-                                <button class="btn-qty" onclick="actualizarCantidadVenta(${itemIndex}, ${vIndex}, '-')">-</button>
-                                <span style="font-weight:bold; min-width: 15px; text-align: center;">${v.cantidad_pedida}</span>
-                                <button class="btn-qty" onclick="actualizarCantidadVenta(${itemIndex}, ${vIndex}, '+')">+</button>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                div.innerHTML = `${titleHTML}${filasHTML}`;
-                contenedor.appendChild(div);
-            });
-
-            btnSubir.disabled = !hayItemsActivos;
+        window.cambiarCantidad = function(idSabor, cambio) {
+            if (window.carrito[idSabor]) {
+                const nuevaCantidad = window.carrito[idSabor].cantidad + cambio;
+                if (nuevaCantidad > window.carrito[idSabor].maxStock) {
+                    mostrarToast("❌ No hay más inventario", true); return;
+                }
+                window.carrito[idSabor].cantidad = nuevaCantidad;
+                if (window.carrito[idSabor].cantidad < 0) window.carrito[idSabor].cantidad = 0;
+                actualizarInterfaz();
+            }
         };
 
         window.mostrarToast = function(mensaje, isError = false) {
@@ -627,7 +568,8 @@ const firebaseConfig = {
             toast.innerText = mensaje;
             if (isError) toast.classList.add('error'); else toast.classList.remove('error');
             toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000); // Duración exacta de 2 segundos (2000ms)
+            // Toast configurado a exactamente 2000 ms (2 segundos)
+            setTimeout(() => toast.classList.remove('show'), 2000);
         };
     </script>
 </body>
