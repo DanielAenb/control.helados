@@ -16,7 +16,7 @@
             --card-bg: #FFFFFF;
             --text-main: #2D3436;
             --border-radius: 12px;
-            --font-base :0.92rem; 
+            --font-base: 0.92rem; 
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
@@ -44,7 +44,6 @@
         .price-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
         .btn-price { background: #e0e0e0; color: #333; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
         .btn-price:disabled { opacity: 0.4; cursor: not-allowed; }
-        .btn-price.active-price { background: var(--primary); color: white; }
 
         /* Submenú de Variantes en Carrito */
         .variant-row { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 8px 12px; border-radius: 8px; margin-top: 8px; border-left: 4px solid var(--info); }
@@ -81,7 +80,8 @@
         .toast.show { opacity: 1; }
         .toast.error { background: var(--warning); }
 
-        #modal-nuevo-sabor { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        /* Modales Reutilizables (Nuevo Sabor y Abono) */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; }
     </style>
 </head>
@@ -97,7 +97,7 @@
     </div>
 
     <!-- MODAL NUEVO SABOR -->
-    <div id="modal-nuevo-sabor">
+    <div id="modal-nuevo-sabor" class="modal-overlay">
         <div class="modal-content">
             <h3>Crear Nuevo Sabor</h3>
             <input type="text" id="input-nuevo-sabor" class="input-form" style="margin-top: 15px;" placeholder="Ej. Parchita" autocomplete="off">
@@ -109,6 +109,19 @@
             <div style="display: flex; gap: 10px;">
                 <button class="btn-submit" style="background: #999;" onclick="cerrarModalNuevoSabor()">Cancelar</button>
                 <button class="btn-submit" style="background: var(--info);" onclick="guardarNuevoSaborBD()">Crear</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ABONAR DEUDA -->
+    <div id="modal-abonar" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modal-abonar-titulo" style="margin-bottom: 5px;">Abonar Deuda</h3>
+            <p id="modal-abonar-desc" style="font-size: 0.9rem; color: #666; margin-bottom: 15px;"></p>
+            <input type="number" id="input-abono" class="input-form" placeholder="Monto a abonar (Ej. 5000)" inputmode="numeric">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-submit" style="background: #999; margin-top: 0;" onclick="cerrarModalAbonar()">Cancelar</button>
+                <button class="btn-submit" style="background: var(--secondary); margin-top: 0;" onclick="confirmarAbono()">Abonar</button>
             </div>
         </div>
     </div>
@@ -146,15 +159,16 @@
             <h2 style="margin-bottom: 15px; color: var(--info);">🛒 Llenar Inventario</h2>
             <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 25px;">
                 <div class="input-group-row">
-                    <select id="select-ingreso-sabor"><option value="">Sabor...</option></select>
+                    <!-- Evento onchange añadido aquí -->
+                    <select id="select-ingreso-sabor" onchange="actualizarOpcionesPrecio()">
+                        <option value="">Sabor...</option>
+                    </select>
                     <button class="btn-add-flavor" onclick="abrirModalNuevoSabor()">+</button>
                 </div>
                 <div class="input-group-row">
+                    <!-- Opciones se llenarán dinámicamente con JS -->
                     <select id="select-ingreso-precio">
-                        <option value="">Presentación...</option>
-                        <option value="1000">Pequeño ($1.000)</option>
-                        <option value="2500">Normal ($2.500)</option>
-                        <option value="3500">Galleta/Cereal ($3.500)</option>
+                        <option value="">Selecciona el sabor primero...</option>
                     </select>
                 </div>
                 <input type="number" id="ingreso-cantidad" class="input-form" placeholder="Cantidad (ej. 10)" inputmode="numeric">
@@ -194,6 +208,7 @@
         const db = getFirestore(app);
         window.db = db;
         window.getDoc = getDoc; window.doc = doc;
+        window.updateDoc = updateDoc; window.increment = increment;
 
         // ===== DEUDAS Y CLIENTES =====
         window.cargarClientes = async function() {
@@ -213,20 +228,12 @@
                         contenedor.innerHTML += `
                             <div class="card-item" style="border-left: 5px solid var(--accent);">
                                 <div style="font-weight:bold;">${datos.nombre}<br><span style="color:var(--accent);">$${datos.deuda.toLocaleString()}</span></div>
-                                <div style="margin-top:10px;"><button class="btn-pay" onclick="abonarDeuda('${docSnap.id}', '${datos.nombre}', ${datos.deuda})">Abonar</button></div>
+                                <div style="margin-top:10px;"><button class="btn-pay" onclick="abrirModalAbono('${docSnap.id}', '${datos.nombre}', ${datos.deuda})">Abonar</button></div>
                             </div>`;
                     }
                 });
                 if(!hayDeudas) contenedor.innerHTML = '<p style="text-align:center;">No hay deudas 🎉</p>';
             } catch (e) {}
-        };
-
-        window.abonarDeuda = async function(id, nombre, deudaActual) {
-            let monto = prompt(`Abonar a la deuda de ${nombre} ($${deudaActual}):`);
-            if (!monto) return; monto = parseInt(monto.replace(/\./g, ''));
-            if (isNaN(monto) || monto <= 0 || monto > deudaActual) return alert("Monto inválido");
-            await updateDoc(doc(db, "clientes", id), { deuda: increment(-monto) });
-            mostrarToast("✅ Abono registrado"); cargarClientes();
         };
 
         // ===== INVENTARIO Y STOCK =====
@@ -235,14 +242,20 @@
                 const querySnapshot = await getDocs(collection(db, "inventario"));
                 const select = document.getElementById('select-ingreso-sabor');
                 const contenedor = document.getElementById('stock-list-container');
+                
                 select.innerHTML = '<option value="">Selecciona un sabor...</option>';
+                document.getElementById('select-ingreso-precio').innerHTML = '<option value="">Selecciona el sabor primero...</option>';
                 contenedor.innerHTML = '';
                 
+                window.catalogoSabores = {}; // Diccionario global para guardar el "tipo"
                 let sabores = [];
+                
                 querySnapshot.forEach(d => sabores.push({ id: d.id, ...d.data() }));
                 sabores.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
                 sabores.forEach(sabor => {
+                    window.catalogoSabores[sabor.id] = sabor.tipo; // Guardamos el tipo para el filtro de ingreso
+                    
                     select.innerHTML += `<option value="${sabor.id}">${sabor.nombre}</option>`;
                     
                     const p1000 = sabor.precios?.['1000'] || 0;
@@ -280,7 +293,6 @@
 
             if (docSnap.exists()) return alert("Ese sabor ya existe.");
             
-            // Creamos el mapa de precios en 0 por defecto
             await setDoc(docRef, { 
                 nombre: nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase(), 
                 tipo: tipo,
@@ -290,6 +302,7 @@
             mostrarToast("✅ Sabor creado"); cerrarModalNuevoSabor();
             await cargarSaboresInventario();
             document.getElementById('select-ingreso-sabor').value = saborID;
+            window.actualizarOpcionesPrecio(); // Actualiza el submenú de precios automáticamente
         };
 
         window.guardarInventario = async function() {
@@ -301,7 +314,6 @@
                 return alert("⚠️ Llena todos los datos correctamente.");
 
             try {
-                // Actualizamos directamente el valor anidado en el mapa "precios"
                 await updateDoc(doc(db, "inventario", idSabor), {
                     [`precios.${precioCat}`]: increment(cantidad)
                 });
@@ -332,13 +344,11 @@
                         const valorNum = parseInt(precio);
                         totalDinero += (cant * valorNum);
 
-                        // Registrar transacción
                         await addDoc(collection(db, "ventas"), {
                             sabor: item.nombre, cantidad: cant, precioUnitario: valorNum,
                             tipo: esFiado ? "fiado" : "contado", cliente: esFiado ? clienteId : "ninguno",
                             fecha: serverTimestamp()
                         });
-                        // Descontar del inventario
                         await updateDoc(doc(db, "inventario", sabor), { 
                             [`precios.${precio}`]: increment(-cant) 
                         });
@@ -357,14 +367,12 @@
 
     <script>
         const PASSWORD_APP = "10545830";
-        // ==========================================
-        // VARIABLE GLOBAL DE CONFIGURACIÓN
-        // Cambia esto a 'false' si decides dejar de vender a $1000
         const PERMITIR_VENTA_1000 = true; 
-        // ==========================================
 
         window.carrito = {};
+        window.catalogoSabores = {}; 
         let html5QrcodeScanner = null; let isProcessingScan = false;
+        let clienteAbonoActual = null;
 
         window.onload = () => {
             if (localStorage.getItem("auth") === "true") {
@@ -381,6 +389,38 @@
             } else document.getElementById("login-error").style.display = "block";
         };
 
+        // Generadores de Sonido (Web Audio API)
+        function playBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime);
+                osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.15);
+            } catch(e) {}
+        }
+        function playErrorBeep() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, ctx.currentTime);
+                osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.3);
+            } catch(e) {}
+        }
+
+        // Sistema de Vibración y Toast
+        window.mostrarToast = function(msg, isErr=false) {
+            const t = document.getElementById('toast'); t.innerText = msg;
+            if (isErr) {
+                t.classList.add('error');
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]); // Vibra doble
+            } else {
+                t.classList.remove('error');
+                if (navigator.vibrate) navigator.vibrate(100); // Vibra simple
+            }
+            t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000);
+        };
+
+        // ===== LÓGICA DE INTERFAZ Y MODALES =====
         window.toggleFiado = function() {
             const chk = document.getElementById('check-fiado').checked;
             const sel = document.getElementById('select-cliente');
@@ -390,10 +430,47 @@
 
         window.abrirModalNuevoSabor = () => { document.getElementById('modal-nuevo-sabor').style.display = 'flex'; };
         window.cerrarModalNuevoSabor = () => { document.getElementById('modal-nuevo-sabor').style.display = 'none'; };
-        window.mostrarToast = function(msg, isErr=false) {
-            const t = document.getElementById('toast'); t.innerText = msg;
-            isErr ? t.classList.add('error') : t.classList.remove('error');
-            t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000);
+
+        // Nuevo Sistema de Abonos
+        window.abrirModalAbono = function(id, nombre, deudaActual) {
+            clienteAbonoActual = { id, nombre, deudaActual };
+            document.getElementById('modal-abonar-titulo').innerText = `Abonar a ${nombre}`;
+            document.getElementById('modal-abonar-desc').innerText = `Deuda actual: $${deudaActual.toLocaleString()}`;
+            document.getElementById('input-abono').value = '';
+            document.getElementById('modal-abonar').style.display = 'flex';
+        };
+        window.cerrarModalAbonar = () => { document.getElementById('modal-abonar').style.display = 'none'; };
+        window.confirmarAbono = async function() {
+            let monto = parseInt(document.getElementById('input-abono').value);
+            if (isNaN(monto) || monto <= 0) return alert("⚠️ Monto inválido");
+            if (monto > clienteAbonoActual.deudaActual) return alert("❌ No puede abonar más de lo que debe");
+            
+            try {
+                await window.updateDoc(window.doc(window.db, "clientes", clienteAbonoActual.id), { deuda: window.increment(-monto) });
+                mostrarToast(`✅ Abono de $${monto.toLocaleString()} registrado`);
+                cerrarModalAbonar();
+                window.cargarClientes();
+            } catch(e) { alert("Error al procesar pago."); }
+        };
+
+        // Filtro Inteligente de Precios para Ingreso de Stock
+        window.actualizarOpcionesPrecio = function() {
+            const idSabor = document.getElementById('select-ingreso-sabor').value;
+            const selectPrecio = document.getElementById('select-ingreso-precio');
+            selectPrecio.innerHTML = '<option value="">Presentación...</option>';
+            
+            if (!idSabor) return;
+            
+            const tipoSabor = window.catalogoSabores[idSabor];
+            
+            if (tipoSabor === 'comun') {
+                if (PERMITIR_VENTA_1000) {
+                    selectPrecio.innerHTML += `<option value="1000">Pequeño ($1.000)</option>`;
+                }
+                selectPrecio.innerHTML += `<option value="2500">Normal ($2.500)</option>`;
+            } else if (tipoSabor === 'cereal') {
+                selectPrecio.innerHTML += `<option value="3500">Galleta/Cereal ($3.500)</option>`;
+            }
         };
 
         window.switchView = function(viewName) {
@@ -406,6 +483,7 @@
             if (viewName === 'ingreso' && window.cargarSaboresInventario) window.cargarSaboresInventario();
         };
 
+        // ===== ESCÁNER =====
         function startScanner() {
             if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader");
             html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10 }, async (texto) => {
@@ -421,24 +499,26 @@
                         const p3500 = data.precios?.['3500'] || 0;
                         
                         if ((p1000 + p2500 + p3500) > 0) {
-                            if (navigator.vibrate) navigator.vibrate(100);
+                            playBeep(); // Suena Beep de éxito
                             
-                            // Si no está en carrito, lo creamos vacío
                             if (!window.carrito[sabor]) {
                                 window.carrito[sabor] = {
                                     nombre: data.nombre, tipo: data.tipo,
                                     stockReal: { '1000': p1000, '2500': p2500, '3500': p3500 },
-                                    variantes: {} // Aquí se guardan las cantidades elegidas
+                                    variantes: {}
                                 };
                             }
                             mostrarToast(`🛒 ${data.nombre} escaneado. Selecciona el precio.`);
                             actualizarInterfaz();
                             switchView('list');
                         } else {
-                            if (navigator.vibrate) navigator.vibrate([200,100,200]);
+                            playErrorBeep(); // Suena Beep de error
                             mostrarToast(`❌ No hay helados disponibles de ${data.nombre}`, true);
                         }
-                    } else mostrarToast("❌ Sabor no registrado", true);
+                    } else {
+                        playErrorBeep();
+                        mostrarToast("❌ Sabor no registrado", true);
+                    }
                 } catch (e) {}
                 setTimeout(() => { isProcessingScan = false; }, 2000); 
             }, () => {}).catch(e => alert("Da permisos de cámara."));
@@ -453,7 +533,6 @@
 
             for (const [idSabor, item] of Object.entries(window.carrito)) {
                 
-                // Construir botones según el "tipo" y el stock
                 let botonesPrecios = '';
                 
                 if (item.tipo === 'comun') {
@@ -468,7 +547,6 @@
                     botonesPrecios += `<button class="btn-price" onclick="agregarVariante('${idSabor}', '3500')" ${stock3K <= 0 ? 'disabled' : ''}>$3.500 (Especial)</button>`;
                 }
 
-                // Construir sub-filas de variantes ya elegidas
                 let filasVariantes = '';
                 for(const [precio, cantidad] of Object.entries(item.variantes)) {
                     if (cantidad > 0) {
@@ -515,7 +593,7 @@
             const item = window.carrito[idSabor];
             const nuevaCant = item.variantes[precio] + cambio;
             
-            if (nuevaCant > item.stockReal[precio]) return mostrarToast("❌ No hay más inventario de esta presentación", true);
+            if (nuevaCant > item.stockReal[precio]) return mostrarToast("❌ No hay más inventario", true);
             if (nuevaCant <= 0) return eliminarVariante(idSabor, precio);
             
             item.variantes[precio] = nuevaCant;
