@@ -48,12 +48,12 @@
         /* Submenú de Variantes en Carrito */
         .variant-row { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 8px 12px; border-radius: 8px; margin-top: 8px; border-left: 4px solid var(--info); }
         .qty-controls { display: flex; align-items: center; gap: 10px; }
-        .btn-qty { background: #e0e0e0; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; }
+        .btn-qty { background: #e0e0e0; border: none; width: 35px; height: 35px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; }
         .btn-delete { background: #ffebee; color: var(--warning); border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;}
 
         /* Stock Info */
         .card-item.empty-stock { background-color: #ffebee; border-left: 5px solid var(--warning); }
-        .stock-pill { display: inline-block; background: #eee; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-right: 5px; font-weight: bold; }
+        .stock-pill { display: inline-block; background: #eee; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-right: 5px; font-weight: bold; margin-bottom: 4px;}
         .stock-pill.low { color: var(--warning); background: #ffebee; }
 
         .fiado-box { background: #fff3e0; padding: 15px; border-radius: var(--border-radius); margin-top: 20px; border: 1px solid #ffe0b2; }
@@ -67,13 +67,13 @@
         .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
         .btn-pay, .btn-message-icon, .btn-add-flavor { background: var(--info); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
 
-        /* Píldora Navegación */
+        /* Píldora Navegación Ajustada */
         .bottom-nav-wrapper { position: fixed; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 900; pointer-events: none; }
-        .bottom-nav { background: var(--card-bg); display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: 50px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); width: 92%; max-width: 450px; pointer-events: auto; }
-        .nav-btn { background: none; border: none; color: #888; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; cursor: pointer; flex: 1; padding: 8px 5px; border-radius: 20px; }
-        .nav-btn .icon { font-size: 1.4rem; margin-bottom: 4px; }
+        .bottom-nav { background: var(--card-bg); display: flex; align-items: center; justify-content: space-between; padding: 8px 8px; border-radius: 50px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); width: 96%; max-width: 480px; pointer-events: auto; }
+        .nav-btn { background: none; border: none; color: #888; display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; cursor: pointer; flex: 1; padding: 8px 2px; border-radius: 20px; }
+        .nav-btn .icon { font-size: 1.3rem; margin-bottom: 4px; }
         .nav-btn:not(.nav-btn-main).active { color: var(--primary); font-weight: bold; background-color: #e8f5e9; }
-        .nav-btn-main { background: var(--primary); color: white !important; flex-direction: row; border-radius: 30px; padding: 10px 15px; flex: 1.6; gap: 8px; font-weight: bold; }
+        .nav-btn-main { background: var(--primary); color: white !important; flex-direction: row; border-radius: 30px; padding: 10px 12px; flex: 1.4; gap: 5px; font-weight: bold; font-size: 0.75rem;}
         .nav-btn-main.active { background: #1b5e20; box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); border: 2px solid #a5d6a7; }
 
         .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 20px; border-radius: 50px; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none;}
@@ -159,19 +159,25 @@
             <h2 style="margin-bottom: 15px; color: var(--info);">🛒 Llenar Inventario</h2>
             <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 25px;">
                 <div class="input-group-row">
-                    <!-- Evento onchange añadido aquí -->
                     <select id="select-ingreso-sabor" onchange="actualizarOpcionesPrecio()">
                         <option value="">Sabor...</option>
                     </select>
                     <button class="btn-add-flavor" onclick="abrirModalNuevoSabor()">+</button>
                 </div>
                 <div class="input-group-row">
-                    <!-- Opciones se llenarán dinámicamente con JS -->
                     <select id="select-ingreso-precio">
                         <option value="">Selecciona el sabor primero...</option>
                     </select>
                 </div>
-                <input type="number" id="ingreso-cantidad" class="input-form" placeholder="Cantidad (ej. 10)" inputmode="numeric">
+                
+                <!-- Nuevo Contador de Ingreso -->
+                <div style="text-align: center; margin-bottom: 8px; color: #666; font-size: 0.9rem;">Cantidad a añadir al stock:</div>
+                <div class="qty-controls" style="justify-content: center; margin-bottom: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+                    <button class="btn-qty" onclick="cambiarCantidadIngreso(-1)">-</button>
+                    <span id="ingreso-cantidad-display" style="font-weight: bold; font-size: 1.4rem; min-width: 40px; text-align: center;">1</span>
+                    <button class="btn-qty" onclick="cambiarCantidadIngreso(1)">+</button>
+                </div>
+
                 <button class="btn-submit" style="background: var(--info); margin-top:0;" onclick="guardarInventario()">➕ Sumar Stock</button>
             </div>
 
@@ -185,8 +191,8 @@
         <div class="bottom-nav">
             <button class="nav-btn nav-btn-main" onclick="switchView('scanner')" id="btn-scanner"><span class="icon">📷</span> Escanear</button>
             <button class="nav-btn active" onclick="switchView('list')" id="btn-list"><span class="icon">📋</span> Venta</button>
-            <button class="nav-btn" onclick="switchView('ingreso')" id="btn-ingreso"><span class="icon">🛒</span></button>
-            <button class="nav-btn" onclick="switchView('deudas')" id="btn-deudas"><span class="icon">📓</span></button>
+            <button class="nav-btn" onclick="switchView('ingreso')" id="btn-ingreso"><span class="icon">🛒</span> Inventario</button>
+            <button class="nav-btn" onclick="switchView('deudas')" id="btn-deudas"><span class="icon">📓</span> Deudas</button>
         </div>
     </div>
 
@@ -195,14 +201,14 @@
         import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
-            authDomain: "helados-0612.firebaseapp.com",
-            projectId: "helados-0612",
-            storageBucket: "helados-0612.firebasestorage.app",
-            messagingSenderId: "683985818004",
-            appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
-            measurementId: "G-BVR8BXKPDR"
-};
+        apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
+        authDomain: "helados-0612.firebaseapp.com",
+        projectId: "helados-0612",
+        storageBucket: "helados-0612.firebasestorage.app",
+        messagingSenderId: "683985818004",
+        appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
+        measurementId: "G-BVR8BXKPDR"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -247,14 +253,14 @@
                 document.getElementById('select-ingreso-precio').innerHTML = '<option value="">Selecciona el sabor primero...</option>';
                 contenedor.innerHTML = '';
                 
-                window.catalogoSabores = {}; // Diccionario global para guardar el "tipo"
+                window.catalogoSabores = {};
                 let sabores = [];
                 
                 querySnapshot.forEach(d => sabores.push({ id: d.id, ...d.data() }));
                 sabores.sort((a, b) => a.nombre.localeCompare(b.nombre));
 
                 sabores.forEach(sabor => {
-                    window.catalogoSabores[sabor.id] = sabor.tipo; // Guardamos el tipo para el filtro de ingreso
+                    window.catalogoSabores[sabor.id] = sabor.tipo;
                     
                     select.innerHTML += `<option value="${sabor.id}">${sabor.nombre}</option>`;
                     
@@ -265,10 +271,10 @@
                     
                     let badges = '';
                     if (sabor.tipo === 'comun') {
-                        badges += `<span class="stock-pill ${p1000<=0?'low':''}">$1K: ${p1000}</span>`;
-                        badges += `<span class="stock-pill ${p2500<=0?'low':''}">$2.5K: ${p2500}</span>`;
+                        badges += `<span class="stock-pill ${p1000<=0?'low':''} ">$1000: ${p1000}</span>`;
+                        badges += `<span class="stock-pill ${p2500<=0?'low':''} ">$2500: ${p2500}</span>`;
                     } else if (sabor.tipo === 'cereal') {
-                        badges += `<span class="stock-pill ${p3500<=0?'low':''}">$3.5K: ${p3500}</span>`;
+                        badges += `<span class="stock-pill ${p3500<=0?'low':''} ">$3500: ${p3500}</span>`;
                     }
 
                     contenedor.innerHTML += `
@@ -302,15 +308,15 @@
             mostrarToast("✅ Sabor creado"); cerrarModalNuevoSabor();
             await cargarSaboresInventario();
             document.getElementById('select-ingreso-sabor').value = saborID;
-            window.actualizarOpcionesPrecio(); // Actualiza el submenú de precios automáticamente
+            window.actualizarOpcionesPrecio();
         };
 
         window.guardarInventario = async function() {
             const idSabor = document.getElementById('select-ingreso-sabor').value;
             const precioCat = document.getElementById('select-ingreso-precio').value;
-            const cantidad = parseInt(document.getElementById('ingreso-cantidad').value);
+            const cantidad = window.cantidadIngresoActual;
 
-            if (!idSabor || !precioCat || isNaN(cantidad) || cantidad <= 0) 
+            if (!idSabor || !precioCat || cantidad <= 0) 
                 return alert("⚠️ Llena todos los datos correctamente.");
 
             try {
@@ -318,7 +324,11 @@
                     [`precios.${precioCat}`]: increment(cantidad)
                 });
                 mostrarToast("✅ Stock añadido");
-                document.getElementById('ingreso-cantidad').value = "";
+                
+                // Reiniciar el contador después de guardar
+                window.cantidadIngresoActual = 1;
+                document.getElementById('ingreso-cantidad-display').innerText = "1";
+                
                 cargarSaboresInventario();
             } catch (e) { alert("Error guardando stock."); }
         };
@@ -373,6 +383,9 @@
         window.catalogoSabores = {}; 
         let html5QrcodeScanner = null; let isProcessingScan = false;
         let clienteAbonoActual = null;
+        
+        // Variable Global para el contador de ingreso
+        window.cantidadIngresoActual = 1;
 
         window.onload = () => {
             if (localStorage.getItem("auth") === "true") {
@@ -389,7 +402,6 @@
             } else document.getElementById("login-error").style.display = "block";
         };
 
-        // Generadores de Sonido (Web Audio API)
         function playBeep() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -407,15 +419,14 @@
             } catch(e) {}
         }
 
-        // Sistema de Vibración y Toast
         window.mostrarToast = function(msg, isErr=false) {
             const t = document.getElementById('toast'); t.innerText = msg;
             if (isErr) {
                 t.classList.add('error');
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200]); // Vibra doble
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]); 
             } else {
                 t.classList.remove('error');
-                if (navigator.vibrate) navigator.vibrate(100); // Vibra simple
+                if (navigator.vibrate) navigator.vibrate(100);
             }
             t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000);
         };
@@ -431,7 +442,6 @@
         window.abrirModalNuevoSabor = () => { document.getElementById('modal-nuevo-sabor').style.display = 'flex'; };
         window.cerrarModalNuevoSabor = () => { document.getElementById('modal-nuevo-sabor').style.display = 'none'; };
 
-        // Nuevo Sistema de Abonos
         window.abrirModalAbono = function(id, nombre, deudaActual) {
             clienteAbonoActual = { id, nombre, deudaActual };
             document.getElementById('modal-abonar-titulo').innerText = `Abonar a ${nombre}`;
@@ -453,7 +463,6 @@
             } catch(e) { alert("Error al procesar pago."); }
         };
 
-        // Filtro Inteligente de Precios para Ingreso de Stock
         window.actualizarOpcionesPrecio = function() {
             const idSabor = document.getElementById('select-ingreso-sabor').value;
             const selectPrecio = document.getElementById('select-ingreso-precio');
@@ -471,6 +480,14 @@
             } else if (tipoSabor === 'cereal') {
                 selectPrecio.innerHTML += `<option value="3500">Galleta/Cereal ($3.500)</option>`;
             }
+        };
+
+        // Función para cambiar cantidad en el ingreso de inventario
+        window.cambiarCantidadIngreso = function(cambio) {
+            let nuevaCant = window.cantidadIngresoActual + cambio;
+            if (nuevaCant < 1) nuevaCant = 1; // Nunca permitir menos de 1
+            window.cantidadIngresoActual = nuevaCant;
+            document.getElementById('ingreso-cantidad-display').innerText = window.cantidadIngresoActual;
         };
 
         window.switchView = function(viewName) {
@@ -499,7 +516,7 @@
                         const p3500 = data.precios?.['3500'] || 0;
                         
                         if ((p1000 + p2500 + p3500) > 0) {
-                            playBeep(); // Suena Beep de éxito
+                            playBeep();
                             
                             if (!window.carrito[sabor]) {
                                 window.carrito[sabor] = {
@@ -512,7 +529,7 @@
                             actualizarInterfaz();
                             switchView('list');
                         } else {
-                            playErrorBeep(); // Suena Beep de error
+                            playErrorBeep();
                             mostrarToast(`❌ No hay helados disponibles de ${data.nombre}`, true);
                         }
                     } else {
