@@ -16,416 +16,299 @@
             --card-bg: #FFFFFF;
             --text-main: #2D3436;
             --border-radius: 12px;
-            /* Variable global para controlar el tamaño general de las fuentes */
-            --font-base: 0.92rem; 
+            --font-base :0.92rem; 
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 100px; font-size: var(--font-base); }
 
-        /* HEADER */
-        header { 
-            background-color: var(--card-bg); padding: 15px; text-align: center; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: relative;
-            display: flex; justify-content: center; align-items: center;
-        }
-        h1 { color: var(--primary); font-size: 1.25rem; text-align: center; margin: 0; }
+        header { background-color: var(--card-bg); padding: 15px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        h1 { color: var(--primary); font-size: 1.25rem; margin: 0; }
         h2 { font-size: 1.2rem; }
-        h3 { font-size: 1.1rem; }
 
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
         .view { display: none; }
         .view.active { display: block; }
 
-        /* Login Screen */
+        /* Login */
         #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .login-box { background: white; padding: 30px; border-radius: var(--border-radius); box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center;}
-        .login-box input { padding: 10px; margin: 15px 0; width: 100%; font-size: calc(var(--font-base) + 0.1rem); text-align: center; border: 1px solid #ccc; border-radius: 8px;}
-        .login-box button { background: var(--primary); color: white; border: none; padding: 12px 20px; font-size: calc(var(--font-base) + 0.1rem); font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;}
+        .login-box input { padding: 10px; margin: 15px 0; width: 100%; text-align: center; border: 1px solid #ccc; border-radius: 8px;}
+        .login-box button { background: var(--primary); color: white; border: none; padding: 12px 20px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;}
 
-        /* Escáner, Lista y Tarjetas */
+        /* Escáner y Tarjetas */
         #reader { width: 100%; border-radius: var(--border-radius); overflow: hidden; background: #000; margin-bottom: 15px;}
-        .card-item { background: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: var(--border-radius); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+        .card-item { background: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: var(--border-radius); box-shadow: 0 2px 5px rgba(0,0,0,0.05);}
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         
-        /* Clase especial para items agotados en el inventario */
+        .price-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-price { background: #e0e0e0; color: #333; border: none; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; cursor: pointer; }
+        .btn-price:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-price.active-price { background: var(--primary); color: white; }
+
+        /* Submenú de Variantes en Carrito */
+        .variant-row { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 8px 12px; border-radius: 8px; margin-top: 8px; border-left: 4px solid var(--info); }
+        .qty-controls { display: flex; align-items: center; gap: 10px; }
+        .btn-qty { background: #e0e0e0; border: none; width: 30px; height: 30px; border-radius: 50%; font-weight: bold; cursor: pointer; }
+        .btn-delete { background: #ffebee; color: var(--warning); border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem;}
+
+        /* Stock Info */
         .card-item.empty-stock { background-color: #ffebee; border-left: 5px solid var(--warning); }
-        .card-item.empty-stock .stock-number { color: var(--warning); }
+        .stock-pill { display: inline-block; background: #eee; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; margin-right: 5px; font-weight: bold; }
+        .stock-pill.low { color: var(--warning); background: #ffebee; }
 
-        .qty-controls { display: flex; align-items: center; gap: 15px; }
-        .btn-qty { background: #f0f0f0; border: none; width: 35px; height: 35px; border-radius: 50%; font-size: calc(var(--font-base) + 0.2rem); font-weight: bold; cursor: pointer; }
-        
-        /* Sección de Fiado */
         .fiado-box { background: #fff3e0; padding: 15px; border-radius: var(--border-radius); margin-top: 20px; border: 1px solid #ffe0b2; }
-        .fiado-box label { font-weight: bold; font-size: var(--font-base); display: flex; align-items: center; gap: 10px; cursor: pointer;}
-        .fiado-box select { width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; font-size: var(--font-base); border: 1px solid #ccc; display: none; }
+        .fiado-box select { width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc; display: none; }
         
-        /* Controles de Formularios */
-        .input-form { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: var(--font-base); }
+        .input-form { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; }
         .input-group-row { display: flex; gap: 10px; margin-bottom: 15px; }
-        .input-group-row select { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: var(--font-base); }
-        .btn-add-flavor { background: var(--info); color: white; border: none; width: 45px; border-radius: 8px; font-size: calc(var(--font-base) + 0.4rem); cursor: pointer; display: flex; justify-content: center; align-items: center; }
+        .input-group-row select { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; }
+        
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; font-weight: bold; border-radius: var(--border-radius); margin-top: 15px; cursor: pointer; }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-pay, .btn-message-icon, .btn-add-flavor { background: var(--info); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
 
-        /* Botones Principales */
-        .btn-submit { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; font-size: calc(var(--font-base) + 0.1rem); font-weight: bold; border-radius: var(--border-radius); margin-top: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);}
-        .btn-submit:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
-        
-        .btn-pay { background: var(--secondary); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: var(--font-base);}
-        .btn-message-icon { background: var(--info); color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: calc(var(--font-base) + 0.1rem);}
+        /* Píldora Navegación */
+        .bottom-nav-wrapper { position: fixed; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 900; pointer-events: none; }
+        .bottom-nav { background: var(--card-bg); display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: 50px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); width: 92%; max-width: 450px; pointer-events: auto; }
+        .nav-btn { background: none; border: none; color: #888; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; cursor: pointer; flex: 1; padding: 8px 5px; border-radius: 20px; }
+        .nav-btn .icon { font-size: 1.4rem; margin-bottom: 4px; }
+        .nav-btn:not(.nav-btn-main).active { color: var(--primary); font-weight: bold; background-color: #e8f5e9; }
+        .nav-btn-main { background: var(--primary); color: white !important; flex-direction: row; border-radius: 30px; padding: 10px 15px; flex: 1.6; gap: 8px; font-weight: bold; }
+        .nav-btn-main.active { background: #1b5e20; box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); border: 2px solid #a5d6a7; }
 
-        /* Navegación Inferior Estilo Píldora */
-        .bottom-nav-wrapper {
-            position: fixed; bottom: 20px; left: 0; width: 100%;
-            display: flex; justify-content: center; z-index: 900;
-            pointer-events: none; /* Permite clics fuera de la píldora */
-        }
-        .bottom-nav {
-            background: var(--card-bg);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 12px; border-radius: 50px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            width: 92%; max-width: 450px; gap: 5px;
-            pointer-events: auto;
-        }
-        .nav-btn {
-            background: none; border: none; color: #888;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-size: 0.75rem; cursor: pointer; transition: all 0.3s;
-            flex: 1; padding: 8px 5px; border-radius: 20px;
-        }
-        .nav-btn .icon { font-size: 1.4rem; margin-bottom: 4px; transition: 0.2s; }
-        
-        /* Indicador Visual para Opciones Activas (Llenar, Venta, Deudas) */
-        .nav-btn:not(.nav-btn-main).active { 
-            color: var(--primary); 
-            font-weight: bold; 
-            background-color: #e8f5e9; /* Resalta la caja con un verde claro */
-        }
-        .nav-btn:not(.nav-btn-main).active .icon { 
-            transform: translateY(-2px) scale(1.15); /* Efecto de levante */
-            color: var(--primary); 
-        }
-        
-        /* Botón Escanear (Más prominente) */
-        .nav-btn-main {
-            background: var(--primary); color: white !important;
-            flex-direction: row; border-radius: 30px;
-            padding: 10px 15px; flex: 1.6; gap: 8px;
-            font-weight: bold; font-size: 0.85rem;
-        }
-        .nav-btn-main .icon { margin-bottom: 0; font-size: 1.2rem; color: white !important; }
-        
-        /* Indicador Visual para Botón Escanear (Presionado/Relieve) */
-        .nav-btn-main.active { 
-            background: #1b5e20; /* Verde más oscuro */
-            box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); /* Simula hundimiento */
-            border: 2px solid #a5d6a7; /* Borde clarito exterior para separarlo */
-        }
-        
-        .nav-text { display: inline-block; }
-
-        /* Toasts */
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 20px; border-radius: 50px; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none; font-size: var(--font-base);}
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 20px; border-radius: 50px; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none;}
         .toast.show { opacity: 1; }
         .toast.error { background: var(--warning); }
 
-        /* Modal Flotante */
-        #modal-nuevo-sabor {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1000;
-            display: none; align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background: white; padding: 25px; border-radius: 15px;
-            width: 90%; max-width: 350px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-        }
+        #modal-nuevo-sabor { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; }
     </style>
 </head>
 <body>
 
-    <!-- PANTALLA DE LOGIN -->
     <div id="login-screen">
         <div class="login-box">
             <h2>🔒 Acceso Restringido</h2>
             <input type="password" id="pin-input" placeholder="Contraseña" inputmode="numeric">
             <button onclick="verificarLogin()">Entrar</button>
-            <p id="login-error" style="color:red; margin-top:10px; display:none; font-size: var(--font-base);">Contraseña incorrecta</p>
+            <p id="login-error" style="color:red; margin-top:10px; display:none;">Contraseña incorrecta</p>
         </div>
     </div>
 
     <!-- MODAL NUEVO SABOR -->
     <div id="modal-nuevo-sabor">
         <div class="modal-content">
-            <h3 style="margin-bottom: 5px;">Crear Nuevo Sabor</h3>
-            <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Asegúrate de escribirlo bien</p>
-            <input type="text" id="input-nuevo-sabor" class="input-form" placeholder="Ej. Parchita" autocomplete="off">
+            <h3>Crear Nuevo Sabor</h3>
+            <input type="text" id="input-nuevo-sabor" class="input-form" style="margin-top: 15px;" placeholder="Ej. Parchita" autocomplete="off">
+            <select id="input-tipo-sabor" class="input-form">
+                <option value="">Selecciona la categoría...</option>
+                <option value="comun">Común ($1000 / $2500)</option>
+                <option value="cereal">Cereal / Galleta ($3500)</option>
+            </select>
             <div style="display: flex; gap: 10px;">
-                <button class="btn-submit" style="background: #999; margin-top: 0;" onclick="cerrarModalNuevoSabor()">Cancelar</button>
-                <button class="btn-submit" style="background: var(--info); margin-top: 0;" onclick="guardarNuevoSaborBD()">Crear</button>
+                <button class="btn-submit" style="background: #999;" onclick="cerrarModalNuevoSabor()">Cancelar</button>
+                <button class="btn-submit" style="background: var(--info);" onclick="guardarNuevoSaborBD()">Crear</button>
             </div>
         </div>
     </div>
 
-    <header>
-        <h1>Helados</h1>
-    </header>
-
+    <header><h1>Helados</h1></header>
     <div id="toast" class="toast">Mensaje</div>
 
     <div class="container">
         <!-- VISTA: ESCANEAR -->
         <div id="view-scanner" class="view">
-            <h2 style="margin-bottom: 10px; text-align: center;">Escanear QR</h2>
+            <h2 style="text-align: center; margin-bottom:10px;">Escanear QR</h2>
             <div id="reader"></div>
         </div>
 
-        <!-- VISTA: VENTA (Antes Lista) -->
+        <!-- VISTA: VENTA -->
         <div id="view-list" class="view active">
-            <h2 style="margin-bottom: 15px;">Helados a Registrar</h2>
+            <h2 style="margin-bottom: 15px;">Venta Actual</h2>
             <div id="cart-container"></div>
             
-            <!-- CAJA DE FIADO -->
             <div class="fiado-box">
-                <label>
-                    <input type="checkbox" id="check-fiado" onchange="toggleFiado()">
-                    📝 Vender como Fiado
-                </label>
-                <select id="select-cliente">
-                    <option value="">Selecciona el cliente...</option>
-                </select>
+                <label style="font-weight:bold; cursor:pointer;"><input type="checkbox" id="check-fiado" onchange="toggleFiado()"> 📝 Vender como Fiado</label>
+                <select id="select-cliente"><option value="">Selecciona el cliente...</option></select>
             </div>
-
-            <button id="btn-subir" class="btn-submit" onclick="subirBaseDeDatos()" disabled>
-                ☁️ Subir Ventas a Base de Datos
-            </button>
+            <button id="btn-subir" class="btn-submit" onclick="subirBaseDeDatos()" disabled>☁️ Subir Ventas</button>
         </div>
 
         <!-- VISTA: DEUDAS -->
         <div id="view-deudas" class="view">
-            <h2 style="margin-bottom: 15px; color: var(--accent);">Libreta de Deudas</h2>
-            <div id="deudas-container">
-                <p style="font-size: var(--font-base);">Cargando clientes...</p>
-            </div>
+            <h2 style="margin-bottom: 15px; color: var(--accent);">Deudas Pendientes</h2>
+            <div id="deudas-container">Cargando...</div>
         </div>
 
-        <!-- VISTA: INGRESO DE INVENTARIO -->
+        <!-- VISTA: INGRESO -->
         <div id="view-ingreso" class="view">
-            <h2 style="margin-bottom: 15px; color: var(--info);">🛒 Ingresar al Inventario</h2>
-            <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 25px;">
-                <p style="margin-bottom: 15px; color: #666; font-size: var(--font-base);">Selecciona un sabor existente y suma la cantidad.</p>
-                
+            <h2 style="margin-bottom: 15px; color: var(--info);">🛒 Llenar Inventario</h2>
+            <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 25px;">
                 <div class="input-group-row">
-                    <select id="select-ingreso-sabor">
-                        <option value="">Cargando sabores...</option>
-                    </select>
-                    <button class="btn-add-flavor" onclick="abrirModalNuevoSabor()" title="Crear nuevo sabor">+</button>
+                    <select id="select-ingreso-sabor"><option value="">Sabor...</option></select>
+                    <button class="btn-add-flavor" onclick="abrirModalNuevoSabor()">+</button>
                 </div>
-                
-                <input type="number" id="ingreso-cantidad" class="input-form" placeholder="Cantidad a sumar (ej. 10)" inputmode="numeric">
-                
-                <button class="btn-submit" style="background: var(--info);" onclick="guardarInventario()">
-                    ➕ Sumar al Inventario
-                </button>
+                <div class="input-group-row">
+                    <select id="select-ingreso-precio">
+                        <option value="">Presentación...</option>
+                        <option value="1000">Pequeño ($1.000)</option>
+                        <option value="2500">Normal ($2.500)</option>
+                        <option value="3500">Galleta/Cereal ($3.500)</option>
+                    </select>
+                </div>
+                <input type="number" id="ingreso-cantidad" class="input-form" placeholder="Cantidad (ej. 10)" inputmode="numeric">
+                <button class="btn-submit" style="background: var(--info); margin-top:0;" onclick="guardarInventario()">➕ Sumar Stock</button>
             </div>
 
-            <!-- NUEVA SECCIÓN: LISTA DE STOCK DISPONIBLE -->
-            <h2 style="margin-bottom: 15px; font-size: 1.1rem; color: var(--text-main);">📦 Stock Disponible</h2>
-            <div id="stock-list-container">
-                <p style="font-size: var(--font-base); text-align: center;">Cargando inventario...</p>
-            </div>
+            <h2>📦 Stock Actual</h2>
+            <div id="stock-list-container" style="margin-top: 15px;">Cargando...</div>
         </div>
     </div>
 
-    <!-- NAVEGACIÓN INFERIOR (Píldora Flotante) -->
+    <!-- PÍLDORA -->
     <div class="bottom-nav-wrapper">
         <div class="bottom-nav">
-            <!-- 1. Escanear (Prominente) -->
-            <button class="nav-btn nav-btn-main" onclick="switchView('scanner')" id="btn-scanner">
-                <span class="icon">📷</span> <span class="nav-text">Escanear</span>
-            </button>
-            <!-- 2. Venta (Secundario) -->
-            <button class="nav-btn active" onclick="switchView('list')" id="btn-list" title="Registrar Venta">
-                <span class="icon">📋</span> <span class="nav-text">Venta</span>
-            </button>
-            <!-- 3. Llenar (Solo ícono) -->
-            <button class="nav-btn" onclick="switchView('ingreso')" id="btn-ingreso" title="Llenar Inventario">
-                <span class="icon">🛒</span>
-            </button>
-            <!-- 4. Deudas (Solo ícono) -->
-            <button class="nav-btn" onclick="switchView('deudas')" id="btn-deudas" title="Ver Deudas">
-                <span class="icon">📓</span>
-            </button>
+            <button class="nav-btn nav-btn-main" onclick="switchView('scanner')" id="btn-scanner"><span class="icon">📷</span> Escanear</button>
+            <button class="nav-btn active" onclick="switchView('list')" id="btn-list"><span class="icon">📋</span> Venta</button>
+            <button class="nav-btn" onclick="switchView('ingreso')" id="btn-ingreso"><span class="icon">🛒</span></button>
+            <button class="nav-btn" onclick="switchView('deudas')" id="btn-deudas"><span class="icon">📓</span></button>
         </div>
     </div>
 
-    <!-- SCRIPT DE FIREBASE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ==========================================
-        // AQUÍ VAN TUS CLAVES DE FIREBASE
-        // ==========================================
-const firebaseConfig = {
-  apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
-  authDomain: "helados-0612.firebaseapp.com",
-  projectId: "helados-0612",
-  storageBucket: "helados-0612.firebasestorage.app",
-  messagingSenderId: "683985818004",
-  appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
-  measurementId: "G-BVR8BXKPDR"
+        const firebaseConfig = {
+            apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
+            authDomain: "helados-0612.firebaseapp.com",
+            projectId: "helados-0612",
+            storageBucket: "helados-0612.firebasestorage.app",
+            messagingSenderId: "683985818004",
+            appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
+            measurementId: "G-BVR8BXKPDR"
 };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         window.db = db;
+        window.getDoc = getDoc; window.doc = doc;
 
-        // ===== CLIENTES Y DEUDAS =====
+        // ===== DEUDAS Y CLIENTES =====
         window.cargarClientes = async function() {
             try {
                 const querySnapshot = await getDocs(collection(db, "clientes"));
                 const select = document.getElementById('select-cliente');
-                const contenedorDeudas = document.getElementById('deudas-container');
-                
+                const contenedor = document.getElementById('deudas-container');
                 select.innerHTML = '<option value="">Selecciona el cliente...</option>';
-                contenedorDeudas.innerHTML = '';
+                contenedor.innerHTML = '';
                 let hayDeudas = false;
 
                 querySnapshot.forEach((docSnap) => {
-                    const id = docSnap.id;
                     const datos = docSnap.data();
-                    
-                    select.innerHTML += `<option value="${id}">${datos.nombre}</option>`;
-
+                    select.innerHTML += `<option value="${docSnap.id}">${datos.nombre}</option>`;
                     if (datos.deuda > 0) {
                         hayDeudas = true;
-                        contenedorDeudas.innerHTML += `
+                        contenedor.innerHTML += `
                             <div class="card-item" style="border-left: 5px solid var(--accent);">
-                                <div>
-                                    <div style="font-weight:bold; font-size:1.05rem;">${datos.nombre}</div>
-                                    <div style="color:var(--accent); font-weight:bold; font-size: var(--font-base);">Debe: $${datos.deuda.toLocaleString('es-CO')}</div>
-                                </div>
-                                <div style="display:flex; gap:8px;">
-                                    <button class="btn-message-icon" onclick="copiarRecordatorio('${datos.nombre}', ${datos.deuda})" title="Enviar WhatsApp">💬</button>
-                                    <button class="btn-pay" onclick="abonarDeuda('${id}', '${datos.nombre}', ${datos.deuda})">Abonar</button>
-                                </div>
-                            </div>
-                        `;
+                                <div style="font-weight:bold;">${datos.nombre}<br><span style="color:var(--accent);">$${datos.deuda.toLocaleString()}</span></div>
+                                <div style="margin-top:10px;"><button class="btn-pay" onclick="abonarDeuda('${docSnap.id}', '${datos.nombre}', ${datos.deuda})">Abonar</button></div>
+                            </div>`;
                     }
                 });
-
-                if(!hayDeudas) contenedorDeudas.innerHTML = '<p style="text-align:center; color:#888; font-size: var(--font-base);">No hay deudas pendientes 🎉</p>';
-            } catch (error) { console.error(error); }
+                if(!hayDeudas) contenedor.innerHTML = '<p style="text-align:center;">No hay deudas 🎉</p>';
+            } catch (e) {}
         };
 
         window.abonarDeuda = async function(id, nombre, deudaActual) {
-            let monto = prompt(`💰 Deuda actual de ${nombre}: $${deudaActual.toLocaleString('es-CO')}\n¿Cuánto dinero va a abonar/pagar hoy?`, deudaActual);
-            if (monto === null || monto.trim() === "") return;
-            monto = parseInt(monto.replace(/\./g, ''));
-            if (isNaN(monto) || monto <= 0) return alert("❌ Monto inválido");
-            if (monto > deudaActual) return alert("❌ No puede abonar más dinero del que debe.");
-
-            try {
-                await updateDoc(doc(db, "clientes", id), { deuda: increment(-monto) });
-                mostrarToast(`✅ Abono de $${monto} registrado`, false);
-                cargarClientes();
-            } catch (error) { alert("Error al procesar el pago."); }
+            let monto = prompt(`Abonar a la deuda de ${nombre} ($${deudaActual}):`);
+            if (!monto) return; monto = parseInt(monto.replace(/\./g, ''));
+            if (isNaN(monto) || monto <= 0 || monto > deudaActual) return alert("Monto inválido");
+            await updateDoc(doc(db, "clientes", id), { deuda: increment(-monto) });
+            mostrarToast("✅ Abono registrado"); cargarClientes();
         };
 
-        // ===== INVENTARIO: MENÚ DESPLEGABLE Y LISTA DE STOCK =====
+        // ===== INVENTARIO Y STOCK =====
         window.cargarSaboresInventario = async function() {
             try {
                 const querySnapshot = await getDocs(collection(db, "inventario"));
                 const select = document.getElementById('select-ingreso-sabor');
-                const contenedorStock = document.getElementById('stock-list-container'); // Referencia a la lista
-                
+                const contenedor = document.getElementById('stock-list-container');
                 select.innerHTML = '<option value="">Selecciona un sabor...</option>';
-                contenedorStock.innerHTML = ''; // Limpiamos contenedor de stock
+                contenedor.innerHTML = '';
                 
                 let sabores = [];
-                querySnapshot.forEach((docSnap) => {
-                    sabores.push({ 
-                        id: docSnap.id, 
-                        nombre: docSnap.data().nombre,
-                        stock: docSnap.data().stock || 0 // Asegura que siempre devuelva un numero
-                    });
-                });
-                
+                querySnapshot.forEach(d => sabores.push({ id: d.id, ...d.data() }));
                 sabores.sort((a, b) => a.nombre.localeCompare(b.nombre));
-                
-                if(sabores.length === 0) {
-                    contenedorStock.innerHTML = '<p style="text-align:center; color:#888; font-size: var(--font-base);">No hay sabores registrados aún.</p>';
-                }
 
                 sabores.forEach(sabor => {
-                    // Llenar el Select
                     select.innerHTML += `<option value="${sabor.id}">${sabor.nombre}</option>`;
                     
-                    // Llenar la nueva lista inferior
-                    // Condicional IF (frontend) que pregunta si el stock es 0 o menor
-                    const isEmpty = sabor.stock <= 0;
+                    const p1000 = sabor.precios?.['1000'] || 0;
+                    const p2500 = sabor.precios?.['2500'] || 0;
+                    const p3500 = sabor.precios?.['3500'] || 0;
+                    const total = p1000 + p2500 + p3500;
                     
-                    contenedorStock.innerHTML += `
-                        <div class="card-item ${isEmpty ? 'empty-stock' : ''}">
-                            <div style="font-size: 1.05rem; font-weight:bold; display:flex; align-items:center; gap: 8px;">
-                                ${isEmpty ? '<span style="font-size: 0.8rem;">🔴</span>' : ''}
-                                ${sabor.nombre}
+                    let badges = '';
+                    if (sabor.tipo === 'comun') {
+                        badges += `<span class="stock-pill ${p1000<=0?'low':''}">$1K: ${p1000}</span>`;
+                        badges += `<span class="stock-pill ${p2500<=0?'low':''}">$2.5K: ${p2500}</span>`;
+                    } else if (sabor.tipo === 'cereal') {
+                        badges += `<span class="stock-pill ${p3500<=0?'low':''}">$3.5K: ${p3500}</span>`;
+                    }
+
+                    contenedor.innerHTML += `
+                        <div class="card-item ${total <= 0 ? 'empty-stock' : ''}">
+                            <div style="font-weight:bold; margin-bottom:5px;">
+                                ${total <= 0 ? '🔴 ' : ''}${sabor.nombre} <span style="font-size:0.8rem; color:#888;">(${sabor.tipo})</span>
                             </div>
-                            <div class="stock-number" style="font-size:1.15rem; font-weight:bold;">
-                                ${sabor.stock} <span style="font-size: 0.8rem; color:#888; font-weight: normal;">unid.</span>
-                            </div>
-                        </div>
-                    `;
+                            <div>${badges}</div>
+                        </div>`;
                 });
-            } catch (error) { console.error(error); }
+            } catch (e) {}
         };
 
         window.guardarNuevoSaborBD = async function() {
-            const inputSabor = document.getElementById('input-nuevo-sabor').value.trim();
-            if (inputSabor === "") return alert("⚠️ Escribe un nombre para el helado.");
+            const nombre = document.getElementById('input-nuevo-sabor').value.trim();
+            const tipo = document.getElementById('input-tipo-sabor').value;
+            if (!nombre || !tipo) return alert("⚠️ Escribe nombre y selecciona categoría.");
 
-            const saborID = inputSabor.toLowerCase();
-            const saborBonito = inputSabor.charAt(0).toUpperCase() + inputSabor.slice(1).toLowerCase();
+            const saborID = nombre.toLowerCase();
+            const docRef = doc(db, "inventario", saborID);
+            const docSnap = await getDoc(docRef);
 
-            try {
-                const docRef = doc(db, "inventario", saborID);
-                const docSnap = await getDoc(docRef);
-
-                if (docSnap.exists()) {
-                    alert("⚠️ Ese sabor ya existe en el sistema.");
-                    return;
-                }
-
-                await setDoc(docRef, { nombre: saborBonito, stock: 0 });
-                
-                mostrarToast(`✅ ¡Sabor ${saborBonito} creado!`, false);
-                cerrarModalNuevoSabor();
-                
-                await cargarSaboresInventario();
-                document.getElementById('select-ingreso-sabor').value = saborID;
-                document.getElementById('ingreso-cantidad').focus(); 
-
-            } catch (error) { alert("Error creando el sabor."); }
+            if (docSnap.exists()) return alert("Ese sabor ya existe.");
+            
+            // Creamos el mapa de precios en 0 por defecto
+            await setDoc(docRef, { 
+                nombre: nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase(), 
+                tipo: tipo,
+                precios: { '1000': 0, '2500': 0, '3500': 0 } 
+            });
+            
+            mostrarToast("✅ Sabor creado"); cerrarModalNuevoSabor();
+            await cargarSaboresInventario();
+            document.getElementById('select-ingreso-sabor').value = saborID;
         };
 
         window.guardarInventario = async function() {
             const idSabor = document.getElementById('select-ingreso-sabor').value;
-            const inputCantidad = parseInt(document.getElementById('ingreso-cantidad').value);
+            const precioCat = document.getElementById('select-ingreso-precio').value;
+            const cantidad = parseInt(document.getElementById('ingreso-cantidad').value);
 
-            if (idSabor === "") return alert("⚠️ Selecciona un sabor de la lista.");
-            if (isNaN(inputCantidad) || inputCantidad <= 0) return alert("⚠️ Ingresa una cantidad mayor a 0.");
+            if (!idSabor || !precioCat || isNaN(cantidad) || cantidad <= 0) 
+                return alert("⚠️ Llena todos los datos correctamente.");
 
             try {
+                // Actualizamos directamente el valor anidado en el mapa "precios"
                 await updateDoc(doc(db, "inventario", idSabor), {
-                    stock: increment(inputCantidad)
+                    [`precios.${precioCat}`]: increment(cantidad)
                 });
-
-                mostrarToast(`✅ ¡Añadidos ${inputCantidad} al inventario!`, false);
-                
-                document.getElementById('select-ingreso-sabor').value = "";
+                mostrarToast("✅ Stock añadido");
                 document.getElementById('ingreso-cantidad').value = "";
-                switchView('list');
-
-            } catch (error) { alert("Error guardando el inventario."); }
+                cargarSaboresInventario();
+            } catch (e) { alert("Error guardando stock."); }
         };
 
         // ===== SUBIR VENTAS =====
@@ -433,44 +316,55 @@ const firebaseConfig = {
             const btn = document.getElementById('btn-subir');
             const esFiado = document.getElementById('check-fiado').checked;
             const clienteId = document.getElementById('select-cliente').value;
-            if (esFiado && clienteId === "") return alert("⚠️ Selecciona un cliente para fiarle.");
+            if (esFiado && !clienteId) return alert("⚠️ Selecciona cliente para fiar.");
+            
             btn.disabled = true; btn.innerText = "⏳ Subiendo...";
+            let totalDinero = 0;
 
             try {
-                let totalVentaDinero = 0;
                 for (const sabor in window.carrito) {
                     const item = window.carrito[sabor];
-                    if (item.cantidad <= 0) continue;
-                    totalVentaDinero += (item.cantidad * item.precio);
+                    
+                    for (const precio in item.variantes) {
+                        const cant = item.variantes[precio];
+                        if (cant <= 0) continue;
+                        
+                        const valorNum = parseInt(precio);
+                        totalDinero += (cant * valorNum);
 
-                    await addDoc(collection(db, "ventas"), {
-                        sabor: item.nombre, cantidad: item.cantidad,
-                        tipo: esFiado ? "fiado" : "contado", cliente: esFiado ? clienteId : "ninguno",
-                        fecha: serverTimestamp()
-                    });
-                    await updateDoc(doc(db, "inventario", item.nombre), { stock: increment(-item.cantidad) });
+                        // Registrar transacción
+                        await addDoc(collection(db, "ventas"), {
+                            sabor: item.nombre, cantidad: cant, precioUnitario: valorNum,
+                            tipo: esFiado ? "fiado" : "contado", cliente: esFiado ? clienteId : "ninguno",
+                            fecha: serverTimestamp()
+                        });
+                        // Descontar del inventario
+                        await updateDoc(doc(db, "inventario", sabor), { 
+                            [`precios.${precio}`]: increment(-cant) 
+                        });
+                    }
                 }
 
-                if (esFiado) await updateDoc(doc(db, "clientes", clienteId), { deuda: increment(totalVentaDinero) });
+                if (esFiado) await updateDoc(doc(db, "clientes", clienteId), { deuda: increment(totalDinero) });
 
-                mostrarToast(esFiado ? "✅ Fiado guardado exitosamente" : "✅ Venta subida exitosamente", false);
-                window.carrito = {}; document.getElementById('check-fiado').checked = false;
-                toggleFiado(); window.actualizarInterfaz(); window.cargarClientes(); 
-                
-            } catch (error) { alert("Hubo un error subiendo los datos."); } 
-            finally { btn.innerText = "☁️ Subir Ventas a Base de Datos"; }
+                mostrarToast("✅ Venta registrada");
+                window.carrito = {}; document.getElementById('check-fiado').checked = false; toggleFiado(); 
+                window.actualizarInterfaz(); window.cargarClientes(); 
+            } catch (e) { alert("Error subiendo datos."); } 
+            finally { btn.innerText = "☁️ Subir Ventas"; }
         };
-
-        window.getDoc = getDoc; window.doc = doc;
     </script>
 
-    <!-- SCRIPT DE LÓGICA DE LA APP Y UI -->
     <script>
         const PASSWORD_APP = "10545830";
-        const PRECIO_BASE = 2500;
+        // ==========================================
+        // VARIABLE GLOBAL DE CONFIGURACIÓN
+        // Cambia esto a 'false' si decides dejar de vender a $1000
+        const PERMITIR_VENTA_1000 = true; 
+        // ==========================================
+
         window.carrito = {};
-        let html5QrcodeScanner = null;
-        let isProcessingScan = false;
+        let html5QrcodeScanner = null; let isProcessingScan = false;
 
         window.onload = () => {
             if (localStorage.getItem("auth") === "true") {
@@ -483,144 +377,159 @@ const firebaseConfig = {
             if (document.getElementById("pin-input").value === PASSWORD_APP) {
                 localStorage.setItem("auth", "true");
                 document.getElementById("login-screen").style.display = "none";
-                setTimeout(() => { if(window.cargarClientes) window.cargarClientes(); }, 500);
-            } else {
-                document.getElementById("login-error").style.display = "block";
-            }
+                if(window.cargarClientes) window.cargarClientes();
+            } else document.getElementById("login-error").style.display = "block";
         };
 
         window.toggleFiado = function() {
-            const isChecked = document.getElementById('check-fiado').checked;
-            const select = document.getElementById('select-cliente');
-            select.style.display = isChecked ? "block" : "none";
-            if(!isChecked) select.value = "";
+            const chk = document.getElementById('check-fiado').checked;
+            const sel = document.getElementById('select-cliente');
+            sel.style.display = chk ? "block" : "none";
+            if(!chk) sel.value = "";
         };
 
-        window.abrirModalNuevoSabor = function() {
-            document.getElementById('modal-nuevo-sabor').style.display = 'flex';
-            document.getElementById('input-nuevo-sabor').value = ''; 
-            document.getElementById('input-nuevo-sabor').focus();
+        window.abrirModalNuevoSabor = () => { document.getElementById('modal-nuevo-sabor').style.display = 'flex'; };
+        window.cerrarModalNuevoSabor = () => { document.getElementById('modal-nuevo-sabor').style.display = 'none'; };
+        window.mostrarToast = function(msg, isErr=false) {
+            const t = document.getElementById('toast'); t.innerText = msg;
+            isErr ? t.classList.add('error') : t.classList.remove('error');
+            t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000);
         };
-        window.cerrarModalNuevoSabor = function() {
-            document.getElementById('modal-nuevo-sabor').style.display = 'none';
-        };
-
-        window.copiarRecordatorio = function(nombre, deuda) {
-            const numHelados = Math.floor(deuda / PRECIO_BASE);
-            const mensaje = `Hola ${nombre}, ¿cómo estás? Te escribo para recordarte que tienes ${numHelados} heladitos pendientes por ahí (son $${deuda.toLocaleString('es-CO')}). Cuando puedas me haces el pago 🙏, gracias`;
-            
-            navigator.clipboard.writeText(mensaje).then(() => {
-                mostrarToast(`✅ Mensaje para ${nombre} copiado`, false);
-            }).catch(err => alert("No se pudo copiar el mensaje. Dale permisos al navegador."));
-        };
-
-        function playBeep() {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime); 
-                osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.15);
-            } catch(e) {}
-            if (navigator.vibrate) navigator.vibrate(100);
-        }
-        function playErrorBeep() { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); }
 
         window.switchView = function(viewName) {
-            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-            
+            document.querySelectorAll('.view, .nav-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${viewName}`).classList.add('active');
-            
-            const btnNav = document.getElementById(`btn-${viewName}`);
-            if(btnNav) btnNav.classList.add('active');
+            if(document.getElementById(`btn-${viewName}`)) document.getElementById(`btn-${viewName}`).classList.add('active');
 
-            if (viewName === 'scanner') startScanner();
-            else stopScanner();
-
+            if (viewName === 'scanner') startScanner(); else if (html5QrcodeScanner) html5QrcodeScanner.stop();
             if (viewName === 'deudas' && window.cargarClientes) window.cargarClientes();
             if (viewName === 'ingreso' && window.cargarSaboresInventario) window.cargarSaboresInventario();
         };
 
         function startScanner() {
             if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader");
-            html5QrcodeScanner.start(
-                { facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
-                async (textoDecodificado) => {
-                    if (isProcessingScan) return;
-                    isProcessingScan = true;
+            html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10 }, async (texto) => {
+                if (isProcessingScan) return; isProcessingScan = true;
+                const sabor = texto.trim().toLowerCase();
 
-                    const sabor = textoDecodificado.trim().toLowerCase();
-                    const cantidadEnCarrito = window.carrito[sabor] ? window.carrito[sabor].cantidad : 0;
-
-                    try {
-                        const docRef = window.doc(window.db, "inventario", sabor);
-                        const docSnap = await window.getDoc(docRef);
-
-                        if (docSnap.exists()) {
-                            const stockActual = docSnap.data().stock;
-                            if (stockActual > cantidadEnCarrito) {
-                                playBeep();
-                                if (window.carrito[sabor]) window.carrito[sabor].cantidad++;
-                                else window.carrito[sabor] = { nombre: sabor, cantidad: 1, precio: PRECIO_BASE, maxStock: stockActual };
-                                mostrarToast(`¡Helado de ${sabor} añadido!`, false);
-                                actualizarInterfaz();
-                            } else {
-                                playErrorBeep(); mostrarToast(`❌ Helado de ${sabor} sin inventario`, true);
+                try {
+                    const docSnap = await window.getDoc(window.doc(window.db, "inventario", sabor));
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        const p1000 = data.precios?.['1000'] || 0;
+                        const p2500 = data.precios?.['2500'] || 0;
+                        const p3500 = data.precios?.['3500'] || 0;
+                        
+                        if ((p1000 + p2500 + p3500) > 0) {
+                            if (navigator.vibrate) navigator.vibrate(100);
+                            
+                            // Si no está en carrito, lo creamos vacío
+                            if (!window.carrito[sabor]) {
+                                window.carrito[sabor] = {
+                                    nombre: data.nombre, tipo: data.tipo,
+                                    stockReal: { '1000': p1000, '2500': p2500, '3500': p3500 },
+                                    variantes: {} // Aquí se guardan las cantidades elegidas
+                                };
                             }
+                            mostrarToast(`🛒 ${data.nombre} escaneado. Selecciona el precio.`);
+                            actualizarInterfaz();
+                            switchView('list');
                         } else {
-                            playErrorBeep(); mostrarToast("❌ Helado no registrado en sistema", true);
+                            if (navigator.vibrate) navigator.vibrate([200,100,200]);
+                            mostrarToast(`❌ No hay helados disponibles de ${data.nombre}`, true);
                         }
-                    } catch (err) { mostrarToast("⚠️ Error verificando inventario", true); }
-
-                    setTimeout(() => { isProcessingScan = false; }, 2000); 
-                },
-                (error) => {}
-            ).catch(err => alert("Da permisos de cámara para escanear."));
+                    } else mostrarToast("❌ Sabor no registrado", true);
+                } catch (e) {}
+                setTimeout(() => { isProcessingScan = false; }, 2000); 
+            }, () => {}).catch(e => alert("Da permisos de cámara."));
         }
 
-        function stopScanner() { if (html5QrcodeScanner && html5QrcodeScanner.isScanning) html5QrcodeScanner.stop(); }
-
+        // LÓGICA DINÁMICA DEL CARRITO
         window.actualizarInterfaz = function() {
             const contenedor = document.getElementById('cart-container');
             const btnSubir = document.getElementById('btn-subir');
             contenedor.innerHTML = '';
-            let totalItems = 0;
+            let totalItemsEnCarrito = 0;
 
             for (const [idSabor, item] of Object.entries(window.carrito)) {
-                if(item.cantidad > 0) totalItems++;
-                const div = document.createElement('div'); div.className = 'card-item';
-                div.innerHTML = `
-                    <div style="font-size: 1.05rem; font-weight:bold; text-transform:capitalize;">${item.nombre}</div>
-                    <div class="qty-controls">
-                        <button class="btn-qty" onclick="cambiarCantidad('${idSabor}', -1)">-</button>
-                        <span style="font-size:1.15rem; font-weight:bold;">${item.cantidad}</span>
-                        <button class="btn-qty" onclick="cambiarCantidad('${idSabor}', 1)">+</button>
-                    </div>`;
-                contenedor.appendChild(div);
-            }
-
-            btnSubir.disabled = totalItems === 0;
-            if(totalItems === 0) contenedor.innerHTML = '<p style="text-align:center; color:#888; font-size: var(--font-base);">Escanea un QR para empezar</p>';
-        };
-
-        window.cambiarCantidad = function(idSabor, cambio) {
-            if (window.carrito[idSabor]) {
-                const nuevaCantidad = window.carrito[idSabor].cantidad + cambio;
-                if (nuevaCantidad > window.carrito[idSabor].maxStock) {
-                    mostrarToast("❌ No hay más inventario", true); return;
+                
+                // Construir botones según el "tipo" y el stock
+                let botonesPrecios = '';
+                
+                if (item.tipo === 'comun') {
+                    if(PERMITIR_VENTA_1000) {
+                        const stock1K = item.stockReal['1000'] - (item.variantes['1000'] || 0);
+                        botonesPrecios += `<button class="btn-price" onclick="agregarVariante('${idSabor}', '1000')" ${stock1K <= 0 ? 'disabled' : ''}>$1.000</button>`;
+                    }
+                    const stock2K = item.stockReal['2500'] - (item.variantes['2500'] || 0);
+                    botonesPrecios += `<button class="btn-price" onclick="agregarVariante('${idSabor}', '2500')" ${stock2K <= 0 ? 'disabled' : ''}>$2.500</button>`;
+                } else if (item.tipo === 'cereal') {
+                    const stock3K = item.stockReal['3500'] - (item.variantes['3500'] || 0);
+                    botonesPrecios += `<button class="btn-price" onclick="agregarVariante('${idSabor}', '3500')" ${stock3K <= 0 ? 'disabled' : ''}>$3.500 (Especial)</button>`;
                 }
-                window.carrito[idSabor].cantidad = nuevaCantidad;
-                if (window.carrito[idSabor].cantidad < 0) window.carrito[idSabor].cantidad = 0;
-                actualizarInterfaz();
+
+                // Construir sub-filas de variantes ya elegidas
+                let filasVariantes = '';
+                for(const [precio, cantidad] of Object.entries(item.variantes)) {
+                    if (cantidad > 0) {
+                        totalItemsEnCarrito++;
+                        filasVariantes += `
+                            <div class="variant-row">
+                                <span style="font-weight:bold;">$${precio}</span>
+                                <div class="qty-controls">
+                                    <button class="btn-qty" onclick="cambiarCantidadVariante('${idSabor}', '${precio}', -1)">-</button>
+                                    <span>${cantidad}</span>
+                                    <button class="btn-qty" onclick="cambiarCantidadVariante('${idSabor}', '${precio}', 1)">+</button>
+                                    <button class="btn-delete" onclick="eliminarVariante('${idSabor}', '${precio}')">🗑️</button>
+                                </div>
+                            </div>`;
+                    }
+                }
+
+                contenedor.innerHTML += `
+                    <div class="card-item">
+                        <div class="card-header">
+                            <span style="font-size: 1.1rem; font-weight:bold;">${item.nombre}</span>
+                            <button class="btn-delete" style="background:none; font-size:1.2rem;" onclick="eliminarSaborCompleto('${idSabor}')">✖️</button>
+                        </div>
+                        <div class="price-buttons">${botonesPrecios}</div>
+                        ${filasVariantes}
+                    </div>`;
             }
+
+            btnSubir.disabled = totalItemsEnCarrito === 0;
+            if(Object.keys(window.carrito).length === 0) contenedor.innerHTML = '<p style="text-align:center; color:#888;">Escanea un QR para empezar</p>';
         };
 
-        window.mostrarToast = function(mensaje, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.innerText = mensaje;
-            if (isError) toast.classList.add('error'); else toast.classList.remove('error');
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
+        window.agregarVariante = function(idSabor, precio) {
+            const item = window.carrito[idSabor];
+            if(!item.variantes[precio]) item.variantes[precio] = 0;
+            
+            if (item.variantes[precio] < item.stockReal[precio]) {
+                item.variantes[precio]++;
+                actualizarInterfaz();
+            } else mostrarToast("❌ Límite de stock alcanzado", true);
+        };
+
+        window.cambiarCantidadVariante = function(idSabor, precio, cambio) {
+            const item = window.carrito[idSabor];
+            const nuevaCant = item.variantes[precio] + cambio;
+            
+            if (nuevaCant > item.stockReal[precio]) return mostrarToast("❌ No hay más inventario de esta presentación", true);
+            if (nuevaCant <= 0) return eliminarVariante(idSabor, precio);
+            
+            item.variantes[precio] = nuevaCant;
+            actualizarInterfaz();
+        };
+
+        window.eliminarVariante = function(idSabor, precio) {
+            delete window.carrito[idSabor].variantes[precio];
+            actualizarInterfaz();
+        };
+
+        window.eliminarSaborCompleto = function(idSabor) {
+            delete window.carrito[idSabor];
+            actualizarInterfaz();
         };
     </script>
 </body>
