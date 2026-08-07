@@ -7,22 +7,21 @@
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
         :root {
-            /* ==========================================
-               TAMAÑOS DE TEXTO (Ajustar para el cliente)
-               ========================================== */
-            --text-base: 16px;       /* Texto general de la app */
-            --text-title: 22px;      /* Títulos (Ej: Venta Actual, Llenar Inventario) */
-            --text-subtitle: 18px;   /* Nombres de los sabores en las tarjetas */
-            --text-small: 12px;      /* Textos secundarios y botones de navegación */
-            --text-qty: 26px;        /* Números grandes del contador de ingreso */
-            --text-btn: 15px;        /* Textos dentro de botones grandes */
+            /* TAMAÑOS DE TEXTO */
+            --text-base: 16px;
+            --text-title: 22px;
+            --text-subtitle: 18px;
+            --text-small: 12px;
+            --text-qty: 26px;
+            --text-btn: 15px;
 
             /* COLORES DE LA APP */
             --primary: #2E7D32;
             --secondary: #4CAF50;
-            --accent: #FF9800;
+            --accent: #FF9800; /* Naranja Fiado */
             --warning: #F44336;
             --info: #2196F3;
+            --purple: #9C27B0; /* Morado Mayor */
             --bg-color: #F7F9FC;
             --card-bg: #FFFFFF;
             --text-main: #2D3436;
@@ -55,14 +54,20 @@
         .price-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
         .btn-price { background: #e0e0e0; color: #333; border: 2px solid transparent; padding: 6px 12px; border-radius: 20px; font-size: var(--text-small); font-weight: bold; cursor: pointer; transition: all 0.2s;}
         .btn-price:disabled { opacity: 0.4; cursor: not-allowed; }
-        /* EFECTO BOTON PRECIO SELECCIONADO */
         .btn-price.selected { background-color: #e8f5e9; border: 2px solid var(--primary); color: var(--primary); }
 
-        /* Submenú de Variantes en Carrito */
         .variant-row { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 8px 12px; border-radius: 8px; margin-top: 8px; border-left: 4px solid var(--info); }
         .qty-controls { display: flex; align-items: center; gap: 10px; }
         .btn-qty { background: #e0e0e0; border: none; width: 35px; height: 35px; border-radius: 50%; font-weight: bold; cursor: pointer; font-size: var(--text-subtitle); display: flex; align-items: center; justify-content: center; }
         .btn-delete { background: #ffebee; color: var(--warning); border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: var(--text-small);}
+
+        /* Nuevos Botones Toggle (Fiado y Mayor) */
+        .toggle-btn-group { display: flex; gap: 10px; margin-top: 15px; margin-bottom: 10px; }
+        .btn-toggle-option { flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; border: 2px solid #ccc; background: white; color: #666; cursor: pointer; transition: all 0.3s; font-size: var(--text-btn); }
+        .btn-toggle-option.fiado-active { border-color: var(--accent); background: #fff3e0; color: var(--accent); }
+        .btn-toggle-option.mayor-active { border-color: var(--purple); background: #f3e5f5; color: var(--purple); }
+
+        #select-cliente { width: 100%; padding: 12px; border-radius: 8px; border: 2px solid var(--accent); display: none; font-size: var(--text-base); margin-bottom: 15px;}
 
         /* Stock Info */
         .stock-card { cursor: pointer; transition: transform 0.1s, box-shadow 0.1s; }
@@ -70,28 +75,34 @@
         .card-item.empty-stock { background-color: #ffebee; border-left: 5px solid var(--warning); }
         .stock-pill { display: inline-block; background: #eee; padding: 4px 8px; border-radius: 12px; font-size: var(--text-small); margin-right: 5px; font-weight: bold; margin-bottom: 4px;}
         .stock-pill.low { color: var(--warning); background: #ffebee; }
-
-        .fiado-box { background: #fff3e0; padding: 15px; border-radius: var(--border-radius); margin-top: 20px; border: 1px solid #ffe0b2; }
-        .fiado-box select { width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; border: 1px solid #ccc; display: none; font-size: var(--text-base);}
         
         .input-form { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-size: var(--text-base); }
         .input-group-row { display: flex; gap: 10px; margin-bottom: 15px; }
         
-        /* SELECTS VALIDADOS */
         .input-group-row select { flex: 1; padding: 12px; border-radius: 8px; border: 2px solid #ccc; font-size: var(--text-base); transition: all 0.3s; outline: none;}
         .input-group-row select.select-valid { border: 2px solid var(--primary); background-color: #f1f8e9; color: var(--primary); font-weight: bold;}
         
         .btn-submit { background: var(--primary); color: white; border: none; padding: 15px; width: 100%; font-size: var(--text-btn); font-weight: bold; border-radius: var(--border-radius); margin-top: 15px; cursor: pointer; transition: background 0.3s;}
         .btn-submit:disabled { background: #ccc !important; cursor: not-allowed; opacity: 0.7;}
-        .btn-pay, .btn-message-icon, .btn-add-flavor { background: var(--info); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: var(--text-small);}
+        .btn-pay, .btn-add-flavor { background: var(--info); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: var(--text-small);}
 
-        /* Píldora Navegación Ajustada */
+        /* Switches IOS Style para Configuración */
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; }
+        .setting-row span { font-size: var(--text-base); font-weight: bold; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--secondary); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* Píldora Navegación - 5 botones */
         .bottom-nav-wrapper { position: fixed; bottom: 20px; left: 0; width: 100%; display: flex; justify-content: center; z-index: 900; pointer-events: none; }
-        .bottom-nav { background: var(--card-bg); display: flex; align-items: center; justify-content: space-between; padding: 8px 8px; border-radius: 50px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); width: 96%; max-width: 480px; pointer-events: auto; }
-        .nav-btn { background: none; border: none; color: #888; display: flex; flex-direction: column; align-items: center; font-size: var(--text-small); cursor: pointer; flex: 1; padding: 8px 2px; border-radius: 20px; }
-        .nav-btn .icon { font-size: 1.4rem; margin-bottom: 4px; }
+        .bottom-nav { background: var(--card-bg); display: flex; align-items: center; justify-content: space-between; padding: 6px 4px; border-radius: 50px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); width: 98%; max-width: 500px; pointer-events: auto; }
+        .nav-btn { background: none; border: none; color: #888; display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; flex: 1; padding: 6px 0; border-radius: 20px; }
+        .nav-btn .icon { font-size: 1.3rem; margin-bottom: 2px; }
         .nav-btn:not(.nav-btn-main).active { color: var(--primary); font-weight: bold; background-color: #e8f5e9; }
-        .nav-btn-main { background: var(--primary); color: white !important; flex-direction: row; border-radius: 30px; padding: 10px 12px; flex: 1.4; gap: 5px; font-weight: bold; font-size: var(--text-small);}
+        .nav-btn-main { background: var(--primary); color: white !important; flex-direction: row; border-radius: 30px; padding: 8px 10px; flex: 1.3; gap: 4px; font-weight: bold; font-size: var(--text-small);}
         .nav-btn-main.active { background: #1b5e20; box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); border: 2px solid #a5d6a7; }
 
         .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 10px 20px; border-radius: 50px; opacity: 0; transition: opacity 0.3s; z-index: 1000; pointer-events: none; font-size: var(--text-base);}
@@ -100,6 +111,8 @@
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; }
+        
+        .total-display { text-align: right; font-size: var(--text-title); font-weight: bold; color: var(--primary); padding: 10px; background: white; border-radius: var(--border-radius); box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px;}
     </style>
 </head>
 <body>
@@ -113,14 +126,14 @@
         </div>
     </div>
 
-    <!-- MODALES OMITIDOS PARA BREVEDAD (NUEVO SABOR Y ABONAR) - SON IGUALES -->
+    <!-- MODALES -->
     <div id="modal-nuevo-sabor" class="modal-overlay">
         <div class="modal-content">
             <h3>Crear Nuevo Sabor</h3>
             <input type="text" id="input-nuevo-sabor" class="input-form" style="margin-top: 15px;" placeholder="Ej. Parchita" autocomplete="off">
             <select id="input-tipo-sabor" class="input-form">
                 <option value="">Selecciona la categoría...</option>
-                <option value="comun">Común ($1000 / $2500)</option>
+                <option value="comun">Común ($1500 / $2500)</option>
                 <option value="cereal">Cereal / Galleta ($3500)</option>
             </select>
             <div style="display: flex; gap: 10px;">
@@ -142,6 +155,18 @@
         </div>
     </div>
 
+    <!-- MODAL ELIMINAR SABOR -->
+    <div id="modal-eliminar" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="color: var(--warning); margin-bottom: 10px;">⚠️ Eliminar Sabor</h3>
+            <p id="txt-eliminar-sabor" style="font-size: var(--text-base); margin-bottom: 20px;"></p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-submit" style="background: #999; margin-top: 0;" onclick="cerrarModalEliminar()">No</button>
+                <button class="btn-submit" style="background: var(--warning); margin-top: 0;" onclick="confirmarEliminarSabor()">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
     <header><h1>Helados</h1></header>
     <div id="toast" class="toast">Mensaje</div>
 
@@ -155,12 +180,17 @@
         <!-- VISTA: VENTA -->
         <div id="view-list" class="view active">
             <h2 style="margin-bottom: 15px;">Venta Actual</h2>
+            
+            <div class="toggle-btn-group">
+                <button id="btn-toggle-fiado" class="btn-toggle-option" onclick="toggleModo('fiado')">📝 Fiado</button>
+                <button id="btn-toggle-mayor" class="btn-toggle-option" onclick="toggleModo('mayor')">📦 Al Mayor</button>
+            </div>
+            <select id="select-cliente"><option value="">Selecciona el cliente...</option></select>
+            
             <div id="cart-container"></div>
             
-            <div class="fiado-box">
-                <label style="font-weight:bold; cursor:pointer;"><input type="checkbox" id="check-fiado" onchange="toggleFiado()"> 📝 Vender como Fiado</label>
-                <select id="select-cliente"><option value="">Selecciona el cliente...</option></select>
-            </div>
+            <div class="total-display" id="total-display">Total: $0</div>
+
             <button id="btn-subir" class="btn-submit" onclick="subirBaseDeDatos()" disabled>☁️ Subir Ventas</button>
         </div>
 
@@ -186,7 +216,6 @@
                     </select>
                 </div>
                 
-                <!-- Controles de cantidad ocultos por defecto -->
                 <div id="control-cantidad-wrapper" style="display: none;">
                     <div style="text-align: center; margin-bottom: 8px; color: #666; font-size: var(--text-small);">Cantidad a añadir al stock:</div>
                     <div class="qty-controls" style="justify-content: center; margin-bottom: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
@@ -203,37 +232,83 @@
             <p style="font-size: var(--text-small); color: #888; margin-bottom: 15px;">Toca un helado para rellenar su inventario rápidamente.</p>
             <div id="stock-list-container">Cargando...</div>
         </div>
+
+        <!-- VISTA: CONFIGURACIÓN -->
+        <div id="view-config" class="view">
+            <h2 style="margin-bottom: 15px; color: #607D8B;">⚙️ Ajustes y Limpieza</h2>
+            <div style="background: white; padding: 15px 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                <h3 style="font-size: var(--text-base); color: #666; margin-bottom: 10px;">Precios Visibles</h3>
+                <div class="setting-row">
+                    <span>Habilitar Pequeño ($1500)</span>
+                    <label class="switch"><input type="checkbox" id="check-1500" onchange="guardarConfigBD('habilitar_1500', this.checked)"><span class="slider"></span></label>
+                </div>
+                <div class="setting-row">
+                    <span>Habilitar Normal ($2500)</span>
+                    <label class="switch"><input type="checkbox" id="check-2500" onchange="guardarConfigBD('habilitar_2500', this.checked)"><span class="slider"></span></label>
+                </div>
+            </div>
+
+            <h2 style="margin-bottom: 5px; color: var(--warning);">🗑️ Eliminar Sabores</h2>
+            <p style="font-size: var(--text-small); color: #888; margin-bottom: 15px;">Presiona un sabor para eliminarlo permanentemente del sistema.</p>
+            <div id="config-sabores-container">Cargando...</div>
+        </div>
     </div>
 
     <!-- PÍLDORA -->
     <div class="bottom-nav-wrapper">
         <div class="bottom-nav">
-            <button class="nav-btn nav-btn-main" onclick="switchView('scanner')" id="btn-scanner"><span class="icon">📷</span> Escanear</button>
+            <button class="nav-btn nav-btn-main" onclick="switchView('scanner')" id="btn-scanner"><span class="icon">📷</span> Scan</button>
             <button class="nav-btn active" onclick="switchView('list')" id="btn-list"><span class="icon">📋</span> Venta</button>
-            <button class="nav-btn" onclick="switchView('ingreso')" id="btn-ingreso"><span class="icon">🛒</span> Inventario</button>
+            <button class="nav-btn" onclick="switchView('ingreso')" id="btn-ingreso"><span class="icon">🛒</span> Stock</button>
             <button class="nav-btn" onclick="switchView('deudas')" id="btn-deudas"><span class="icon">📓</span> Deudas</button>
+            <button class="nav-btn" onclick="switchView('config')" id="btn-config"><span class="icon">⚙️</span> Config</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, updateDoc, increment, serverTimestamp, getDocs, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
-            authDomain: "helados-0612.firebaseapp.com",
-            projectId: "helados-0612",
-            storageBucket: "helados-0612.firebasestorage.app",
-            messagingSenderId: "683985818004",
-            appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
-            measurementId: "G-BVR8BXKPDR"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyBZNa31pBesuY21OZIFUJ-175w1Ar1-FSI",
+        authDomain: "helados-0612.firebaseapp.com",
+        projectId: "helados-0612",
+        storageBucket: "helados-0612.firebasestorage.app",
+        messagingSenderId: "683985818004",
+        appId: "1:683985818004:web:e0c25c6efa0f49f64c7f81",
+        measurementId: "G-BVR8BXKPDR"
+    };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        window.db = db; window.getDoc = getDoc; window.doc = doc; window.updateDoc = updateDoc; window.increment = increment;
+        window.db = db; window.getDoc = getDoc; window.doc = doc; window.updateDoc = updateDoc; window.increment = increment; window.deleteDoc = deleteDoc; window.setDoc = setDoc;
 
-        // ... CARGAR CLIENTES Y SUBIR VENTAS SE MANTIENEN IGUAL ...
+        // CONFIGURACIÓN GLOBAL EN TIEMPO REAL
+        window.cargarConfiguracionGlobal = async function() {
+            try {
+                const docSnap = await getDoc(doc(db, "configuraciones", "general"));
+                if (docSnap.exists()) {
+                    window.appConfig = docSnap.data();
+                } else {
+                    window.appConfig = { habilitar_1500: true, habilitar_2500: true };
+                    await setDoc(doc(db, "configuraciones", "general"), window.appConfig);
+                }
+                document.getElementById('check-1500').checked = window.appConfig.habilitar_1500;
+                document.getElementById('check-2500').checked = window.appConfig.habilitar_2500;
+            } catch(e) { console.log(e); }
+        };
+
+        window.guardarConfigBD = async function(llave, valor) {
+            window.appConfig[llave] = valor;
+            try {
+                await setDoc(doc(db, "configuraciones", "general"), window.appConfig, { merge: true });
+                mostrarToast("✅ Ajuste guardado");
+                window.actualizarInterfaz(); // Actualiza botones de venta
+                window.actualizarOpcionesPrecio(); // Actualiza selects
+            } catch(e) { alert("Error al guardar ajuste"); }
+        };
+
+        // CLIENTES
         window.cargarClientes = async function() {
             try {
                 const querySnapshot = await getDocs(collection(db, "clientes"));
@@ -241,7 +316,6 @@
                 const contenedor = document.getElementById('deudas-container');
                 select.innerHTML = '<option value="">Selecciona el cliente...</option>'; contenedor.innerHTML = '';
                 let hayDeudas = false;
-
                 querySnapshot.forEach((docSnap) => {
                     const datos = docSnap.data();
                     select.innerHTML += `<option value="${docSnap.id}">${datos.nombre}</option>`;
@@ -258,17 +332,19 @@
             } catch (e) {}
         };
 
-        window.cargarSaboresInventario = async function() {
+        // INVENTARIO Y SABORES
+        window.cargarSaboresInventario = async function(modoConfig = false) {
             try {
                 const querySnapshot = await getDocs(collection(db, "inventario"));
-                const contenedor = document.getElementById('stock-list-container');
+                
+                const contenedorStock = document.getElementById('stock-list-container');
+                const contenedorConfig = document.getElementById('config-sabores-container');
                 const selectSabor = document.getElementById('select-ingreso-sabor');
                 
-                // Solo reconstruimos el select si está vacío para no borrar la selección al recargar
                 const saborActual = selectSabor.value; 
                 selectSabor.innerHTML = '<option value="">Sabor...</option>';
+                contenedorStock.innerHTML = ''; contenedorConfig.innerHTML = '';
                 
-                contenedor.innerHTML = '';
                 window.catalogoSabores = {};
                 let sabores = [];
                 
@@ -279,36 +355,43 @@
                     window.catalogoSabores[sabor.id] = sabor.tipo;
                     selectSabor.innerHTML += `<option value="${sabor.id}">${sabor.nombre}</option>`;
                     
-                    const p1000 = sabor.precios?.['1000'] || 0; const p2500 = sabor.precios?.['2500'] || 0; const p3500 = sabor.precios?.['3500'] || 0;
-                    const total = p1000 + p2500 + p3500;
+                    const p1500 = sabor.precios?.['1500'] || 0; const p2500 = sabor.precios?.['2500'] || 0; const p3500 = sabor.precios?.['3500'] || 0;
+                    const total = p1500 + p2500 + p3500;
                     
                     let badges = '';
                     if (sabor.tipo === 'comun') {
-                        badges += `<span class="stock-pill ${p1000<=0?'low':''} ">$1000: ${p1000}</span>`;
+                        badges += `<span class="stock-pill ${p1500<=0?'low':''} ">$1500: ${p1500}</span>`;
                         badges += `<span class="stock-pill ${p2500<=0?'low':''} ">$2500: ${p2500}</span>`;
                     } else if (sabor.tipo === 'cereal') {
                         badges += `<span class="stock-pill ${p3500<=0?'low':''} ">$3500: ${p3500}</span>`;
                     }
 
-                    // TARJETA DE STOCK CON ONCLICK PARA AUTOCOMPLETAR
-                    contenedor.innerHTML += `
-                        <div class="card-item stock-card ${total <= 0 ? 'empty-stock' : ''}" onclick="seleccionarSaborDesdeStock('${sabor.id}')">
+                    const htmlCard = `
+                        <div class="card-item stock-card ${total <= 0 ? 'empty-stock' : ''}">
                             <div style="font-weight:bold; margin-bottom:5px; font-size: var(--text-subtitle);">
                                 ${total <= 0 ? '🔴 ' : ''}${sabor.nombre} <span style="font-size: var(--text-small); color:#888;">(${sabor.tipo})</span>
                             </div>
                             <div>${badges}</div>
                         </div>`;
+
+                    // Insertar en Inventario (Con click para autocompletar)
+                    let cardInventario = document.createElement('div');
+                    cardInventario.innerHTML = htmlCard;
+                    cardInventario.firstElementChild.onclick = () => seleccionarSaborDesdeStock(sabor.id);
+                    contenedorStock.appendChild(cardInventario.firstElementChild);
+
+                    // Insertar en Configuración (Con click para Eliminar)
+                    let cardConfig = document.createElement('div');
+                    cardConfig.innerHTML = htmlCard;
+                    cardConfig.firstElementChild.onclick = () => abrirModalEliminar(sabor.id, sabor.nombre);
+                    contenedorConfig.appendChild(cardConfig.firstElementChild);
                 });
                 
-                if (saborActual) {
-                    selectSabor.value = saborActual;
-                    window.validarFormularioIngreso();
-                }
+                if (saborActual) { selectSabor.value = saborActual; window.validarFormularioIngreso(); }
             } catch (e) {}
         };
 
         window.guardarNuevoSaborBD = async function() {
-            // ... (Mismo código de crear sabor, abreviado por espacio)
             const nombre = document.getElementById('input-nuevo-sabor').value.trim();
             const tipo = document.getElementById('input-tipo-sabor').value;
             if (!nombre || !tipo) return alert("⚠️ Escribe nombre y selecciona categoría.");
@@ -316,39 +399,39 @@
             const docRef = doc(db, "inventario", saborID);
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) return alert("Ese sabor ya existe.");
-            await setDoc(docRef, { nombre: nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase(), tipo: tipo, precios: { '1000': 0, '2500': 0, '3500': 0 } });
+            await setDoc(docRef, { nombre: nombre.charAt(0).toUpperCase() + nombre.slice(1).toLowerCase(), tipo: tipo, precios: { '1500': 0, '2500': 0, '3500': 0 } });
             mostrarToast("✅ Sabor creado"); cerrarModalNuevoSabor();
-            await cargarSaboresInventario();
-            window.seleccionarSaborDesdeStock(saborID); // Autoselecciona el recién creado
+            await cargarSaboresInventario(); window.seleccionarSaborDesdeStock(saborID); 
+        };
+
+        // ELIMINAR SABOR
+        window.confirmarEliminarSabor = async function() {
+            if(!window.saborEliminarActivo) return;
+            try {
+                await deleteDoc(doc(db, "inventario", window.saborEliminarActivo));
+                mostrarToast("🗑️ Sabor eliminado");
+                cerrarModalEliminar();
+                cargarSaboresInventario();
+            } catch(e) { alert("Error al eliminar"); }
         };
 
         window.guardarInventario = async function() {
             const idSabor = document.getElementById('select-ingreso-sabor').value;
             const precioCat = document.getElementById('select-ingreso-precio').value;
             const cantidad = window.cantidadIngresoActual;
-
             if (!idSabor || !precioCat || cantidad <= 0) return alert("⚠️ Llena todos los datos.");
-
             try {
                 await updateDoc(doc(db, "inventario", idSabor), { [`precios.${precioCat}`]: increment(cantidad) });
                 mostrarToast("✅ Stock añadido");
-                
-                // Reiniciar el formulario
-                window.cantidadIngresoActual = 1;
-                document.getElementById('ingreso-cantidad-display').innerText = "1";
-                document.getElementById('select-ingreso-sabor').value = '';
-                document.getElementById('select-ingreso-precio').innerHTML = '<option value="">Presentación...</option>';
-                window.validarFormularioIngreso(); // Bloquea todo de nuevo
-                
+                window.cantidadIngresoActual = 1; document.getElementById('ingreso-cantidad-display').innerText = "1"; document.getElementById('select-ingreso-sabor').value = ''; document.getElementById('select-ingreso-precio').innerHTML = '<option value="">Presentación...</option>'; window.validarFormularioIngreso(); 
                 cargarSaboresInventario();
             } catch (e) { alert("Error guardando stock."); }
         };
 
         window.subirBaseDeDatos = async function() {
-            // ... (Mismo código de subir ventas)
-            const btn = document.getElementById('btn-subir'); const esFiado = document.getElementById('check-fiado').checked;
+            const btn = document.getElementById('btn-subir'); 
             const clienteId = document.getElementById('select-cliente').value;
-            if (esFiado && !clienteId) return alert("⚠️ Selecciona cliente para fiar.");
+            if (window.esFiado && !clienteId) return alert("⚠️ Selecciona cliente para fiar.");
             btn.disabled = true; btn.innerText = "⏳ Subiendo..."; let totalDinero = 0;
 
             try {
@@ -357,124 +440,133 @@
                     for (const precio in item.variantes) {
                         const cant = item.variantes[precio];
                         if (cant <= 0) continue;
-                        const valorNum = parseInt(precio); totalDinero += (cant * valorNum);
-                        await addDoc(collection(db, "ventas"), { sabor: item.nombre, cantidad: cant, precioUnitario: valorNum, tipo: esFiado ? "fiado" : "contado", cliente: esFiado ? clienteId : "ninguno", fecha: serverTimestamp() });
+                        
+                        const valorOriginal = parseInt(precio);
+                        let valorCobrado = valorOriginal;
+                        
+                        // LÓGICA AL MAYOR
+                        if (window.esMayor) {
+                            if (valorOriginal === 1500) valorCobrado = window.PRECIO_MAYOR_1500;
+                            else if (valorOriginal === 2500) valorCobrado = window.PRECIO_MAYOR_2500;
+                            else if (valorOriginal === 3500) valorCobrado = window.PRECIO_MAYOR_3500;
+                        }
+                        
+                        totalDinero += (cant * valorCobrado);
+                        await addDoc(collection(db, "ventas"), { sabor: item.nombre, cantidad: cant, precioUnitario: valorCobrado, tipo: window.esFiado ? "fiado" : "contado", cliente: window.esFiado ? clienteId : "ninguno", fecha: serverTimestamp(), esMayor: window.esMayor });
                         await updateDoc(doc(db, "inventario", sabor), { [`precios.${precio}`]: increment(-cant) });
                     }
                 }
-                if (esFiado) await updateDoc(doc(db, "clientes", clienteId), { deuda: increment(totalDinero) });
-                mostrarToast("✅ Venta registrada"); window.carrito = {}; document.getElementById('check-fiado').checked = false; toggleFiado(); window.actualizarInterfaz(); window.cargarClientes(); 
+                if (window.esFiado) await updateDoc(doc(db, "clientes", clienteId), { deuda: increment(totalDinero) });
+                mostrarToast("✅ Venta registrada"); 
+                window.carrito = {}; window.esFiado = false; window.esMayor = false;
+                document.getElementById('btn-toggle-fiado').classList.remove('fiado-active');
+                document.getElementById('btn-toggle-mayor').classList.remove('mayor-active');
+                document.getElementById('select-cliente').style.display = "none";
+                window.actualizarInterfaz(); window.cargarClientes(); 
             } catch (e) { alert("Error subiendo datos."); } finally { btn.innerText = "☁️ Subir Ventas"; }
         };
     </script>
 
     <script>
-        const PASSWORD_APP = "10545830"; const PERMITIR_VENTA_1000 = true; 
-        window.carrito = {}; window.catalogoSabores = {}; 
+        const PASSWORD_APP = "10545830"; 
+        
+        // VARIABLES AL MAYOR (Fáciles de cambiar a futuro)
+        window.PRECIO_MAYOR_1500 = 1000;
+        window.PRECIO_MAYOR_2500 = 2500; // Mismo precio por ahora
+        window.PRECIO_MAYOR_3500 = 3500; // Mismo precio por ahora
+        
+        window.carrito = {}; window.catalogoSabores = {}; window.appConfig = { habilitar_1500: true, habilitar_2500: true };
         let html5QrcodeScanner = null; let isProcessingScan = false; let clienteAbonoActual = null;
-        window.cantidadIngresoActual = 1;
+        window.cantidadIngresoActual = 1; window.esFiado = false; window.esMayor = false;
+        window.saborEliminarActivo = null;
 
-        window.onload = () => { if (localStorage.getItem("auth") === "true") { document.getElementById("login-screen").style.display = "none"; setTimeout(() => { if(window.cargarClientes) window.cargarClientes(); }, 1000); } };
-        window.verificarLogin = function() { if (document.getElementById("pin-input").value === PASSWORD_APP) { localStorage.setItem("auth", "true"); document.getElementById("login-screen").style.display = "none"; if(window.cargarClientes) window.cargarClientes(); } else document.getElementById("login-error").style.display = "block"; };
+        window.onload = () => { 
+            if (localStorage.getItem("auth") === "true") { 
+                document.getElementById("login-screen").style.display = "none"; 
+                setTimeout(() => { 
+                    if(window.cargarConfiguracionGlobal) window.cargarConfiguracionGlobal();
+                    if(window.cargarClientes) window.cargarClientes(); 
+                }, 800); 
+            } 
+        };
+
+        window.verificarLogin = function() { if (document.getElementById("pin-input").value === PASSWORD_APP) { localStorage.setItem("auth", "true"); document.getElementById("login-screen").style.display = "none"; window.cargarConfiguracionGlobal(); window.cargarClientes(); } else document.getElementById("login-error").style.display = "block"; };
         function playBeep() { try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); osc.type = 'sine'; osc.frequency.setValueAtTime(800, ctx.currentTime); osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.15); } catch(e) {} }
         function playErrorBeep() { try { const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, ctx.currentTime); osc.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.3); } catch(e) {} }
         window.mostrarToast = function(msg, isErr=false) { const t = document.getElementById('toast'); t.innerText = msg; if (isErr) { t.classList.add('error'); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } else { t.classList.remove('error'); if (navigator.vibrate) navigator.vibrate(100); } t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); };
-        window.toggleFiado = function() { const chk = document.getElementById('check-fiado').checked; const sel = document.getElementById('select-cliente'); sel.style.display = chk ? "block" : "none"; if(!chk) sel.value = ""; };
+        
+        window.toggleModo = function(modo) {
+            if(modo === 'fiado') {
+                window.esFiado = !window.esFiado;
+                const btn = document.getElementById('btn-toggle-fiado');
+                const sel = document.getElementById('select-cliente');
+                btn.classList.toggle('fiado-active', window.esFiado);
+                sel.style.display = window.esFiado ? "block" : "none";
+                if(!window.esFiado) sel.value = "";
+            } else if (modo === 'mayor') {
+                window.esMayor = !window.esMayor;
+                document.getElementById('btn-toggle-mayor').classList.toggle('mayor-active', window.esMayor);
+                window.actualizarInterfaz(); // Recalcula totales
+            }
+        };
+
         window.abrirModalNuevoSabor = () => { document.getElementById('modal-nuevo-sabor').style.display = 'flex'; }; window.cerrarModalNuevoSabor = () => { document.getElementById('modal-nuevo-sabor').style.display = 'none'; };
         window.abrirModalAbono = function(id, nombre, deudaActual) { clienteAbonoActual = { id, nombre, deudaActual }; document.getElementById('modal-abonar-titulo').innerText = `Abonar a ${nombre}`; document.getElementById('modal-abonar-desc').innerText = `Deuda actual: $${deudaActual.toLocaleString()}`; document.getElementById('input-abono').value = ''; document.getElementById('modal-abonar').style.display = 'flex'; };
         window.cerrarModalAbonar = () => { document.getElementById('modal-abonar').style.display = 'none'; };
         window.confirmarAbono = async function() { let monto = parseInt(document.getElementById('input-abono').value); if (isNaN(monto) || monto <= 0) return alert("⚠️ Monto inválido"); if (monto > clienteAbonoActual.deudaActual) return alert("❌ No puede abonar más de lo que debe"); try { await window.updateDoc(window.doc(window.db, "clientes", clienteAbonoActual.id), { deuda: window.increment(-monto) }); mostrarToast(`✅ Abono de $${monto.toLocaleString()} registrado`); cerrarModalAbonar(); window.cargarClientes(); } catch(e) { alert("Error al procesar pago."); } };
 
-        // VALIDACIÓN VISUAL DEL FORMULARIO
+        window.abrirModalEliminar = function(idSabor, nombreSabor) { window.saborEliminarActivo = idSabor; document.getElementById('txt-eliminar-sabor').innerText = `¿Seguro que deseas eliminar ${nombreSabor}? Esta acción no se puede deshacer.`; document.getElementById('modal-eliminar').style.display = 'flex'; };
+        window.cerrarModalEliminar = () => { window.saborEliminarActivo = null; document.getElementById('modal-eliminar').style.display = 'none'; };
+
         window.validarFormularioIngreso = function() {
-            const selectSabor = document.getElementById('select-ingreso-sabor');
-            const selectPrecio = document.getElementById('select-ingreso-precio');
-            const btnSumar = document.getElementById('btn-sumar-stock');
-            const wrapperCantidad = document.getElementById('control-cantidad-wrapper');
-
-            const saborValido = selectSabor.value !== "";
-            const precioValido = selectPrecio.value !== "";
-
-            // Aplica la clase del borde verde si es válido
-            selectSabor.classList.toggle('select-valid', saborValido);
-            selectPrecio.classList.toggle('select-valid', precioValido);
-
-            if (saborValido && precioValido) {
-                btnSumar.disabled = false;
-                btnSumar.style.background = 'var(--info)'; // Azul
-                wrapperCantidad.style.display = 'block'; // Muestra el contador
-            } else {
-                btnSumar.disabled = true;
-                btnSumar.style.background = '#ccc'; // Gris
-                wrapperCantidad.style.display = 'none'; // Oculta el contador
-            }
+            const selectSabor = document.getElementById('select-ingreso-sabor'); const selectPrecio = document.getElementById('select-ingreso-precio'); const btnSumar = document.getElementById('btn-sumar-stock'); const wrapperCantidad = document.getElementById('control-cantidad-wrapper');
+            const saborValido = selectSabor.value !== ""; const precioValido = selectPrecio.value !== "";
+            selectSabor.classList.toggle('select-valid', saborValido); selectPrecio.classList.toggle('select-valid', precioValido);
+            if (saborValido && precioValido) { btnSumar.disabled = false; btnSumar.style.background = 'var(--info)'; wrapperCantidad.style.display = 'block'; } else { btnSumar.disabled = true; btnSumar.style.background = '#ccc'; wrapperCantidad.style.display = 'none'; }
         };
 
         window.actualizarOpcionesPrecio = function() {
             const idSabor = document.getElementById('select-ingreso-sabor').value;
             const selectPrecio = document.getElementById('select-ingreso-precio');
             selectPrecio.innerHTML = '<option value="">Presentación...</option>';
-            
             if (!idSabor) { window.validarFormularioIngreso(); return; }
             
             const tipoSabor = window.catalogoSabores[idSabor];
             if (tipoSabor === 'comun') {
-                if (PERMITIR_VENTA_1000) selectPrecio.innerHTML += `<option value="1000">Pequeño ($1.000)</option>`;
-                selectPrecio.innerHTML += `<option value="2500">Normal ($2.500)</option>`;
+                if (window.appConfig.habilitar_1500) selectPrecio.innerHTML += `<option value="1500">Pequeño ($1.500)</option>`;
+                if (window.appConfig.habilitar_2500) selectPrecio.innerHTML += `<option value="2500">Normal ($2.500)</option>`;
             } else if (tipoSabor === 'cereal') {
                 selectPrecio.innerHTML += `<option value="3500">Galleta/Cereal ($3.500)</option>`;
             }
-            window.validarFormularioIngreso(); // Verifica estado al cambiar
+            window.validarFormularioIngreso(); 
         };
 
-        // LLENADO AUTOMÁTICO DESDE STOCK
         window.seleccionarSaborDesdeStock = function(idSabor) {
-            const selectSabor = document.getElementById('select-ingreso-sabor');
-            selectSabor.value = idSabor;
+            const selectSabor = document.getElementById('select-ingreso-sabor'); selectSabor.value = idSabor; window.actualizarOpcionesPrecio(); 
+            const selectPrecio = document.getElementById('select-ingreso-precio'); const tipoSabor = window.catalogoSabores[idSabor];
             
-            // Forzamos la actualización de la lista del segundo select
-            window.actualizarOpcionesPrecio(); 
-
-            // Auto-elegir presentación para ahorrar tiempo
-            const selectPrecio = document.getElementById('select-ingreso-precio');
-            const tipoSabor = window.catalogoSabores[idSabor];
-            
-            if (tipoSabor === 'cereal') {
-                selectPrecio.value = "3500";
-            } else if (tipoSabor === 'comun') {
-                selectPrecio.value = "2500"; // Por defecto sugerimos el mediano
+            if (tipoSabor === 'cereal') selectPrecio.value = "3500"; 
+            else if (tipoSabor === 'comun') {
+                if (window.appConfig.habilitar_2500) selectPrecio.value = "2500";
+                else if (window.appConfig.habilitar_1500) selectPrecio.value = "1500";
             }
-
-            // Validamos para que se abra el contador y se ponga azul
-            window.validarFormularioIngreso();
-
-            // Reseteamos el contador a 1 por seguridad
-            window.cantidadIngresoActual = 1;
-            document.getElementById('ingreso-cantidad-display').innerText = "1";
-
-            // Animación suave hacia arriba para que el usuario vea el formulario
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.validarFormularioIngreso(); window.cantidadIngresoActual = 1; document.getElementById('ingreso-cantidad-display').innerText = "1"; window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        window.cambiarCantidadIngreso = function(cambio) {
-            let nuevaCant = window.cantidadIngresoActual + cambio;
-            if (nuevaCant < 1) nuevaCant = 1; 
-            window.cantidadIngresoActual = nuevaCant;
-            document.getElementById('ingreso-cantidad-display').innerText = window.cantidadIngresoActual;
-        };
+        window.cambiarCantidadIngreso = function(cambio) { let nuevaCant = window.cantidadIngresoActual + cambio; if (nuevaCant < 1) nuevaCant = 1; window.cantidadIngresoActual = nuevaCant; document.getElementById('ingreso-cantidad-display').innerText = window.cantidadIngresoActual; };
 
         window.switchView = function(viewName) {
             document.querySelectorAll('.view, .nav-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${viewName}`).classList.add('active');
             if(document.getElementById(`btn-${viewName}`)) document.getElementById(`btn-${viewName}`).classList.add('active');
-            window.scrollTo({ top: 0 }); // Sube al cambiar de pestaña
+            window.scrollTo({ top: 0 }); 
 
             if (viewName === 'scanner') startScanner(); else if (html5QrcodeScanner) html5QrcodeScanner.stop();
             if (viewName === 'deudas' && window.cargarClientes) window.cargarClientes();
             if (viewName === 'ingreso' && window.cargarSaboresInventario) window.cargarSaboresInventario();
+            if (viewName === 'config' && window.cargarSaboresInventario) window.cargarSaboresInventario(true);
         };
 
-        // ESCÁNER (Igual que antes)
         function startScanner() {
             if (!html5QrcodeScanner) html5QrcodeScanner = new Html5Qrcode("reader");
             html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10 }, async (texto) => {
@@ -482,10 +574,10 @@
                 try {
                     const docSnap = await window.getDoc(window.doc(window.db, "inventario", sabor));
                     if (docSnap.exists()) {
-                        const data = docSnap.data(); const p1000 = data.precios?.['1000'] || 0; const p2500 = data.precios?.['2500'] || 0; const p3500 = data.precios?.['3500'] || 0;
-                        if ((p1000 + p2500 + p3500) > 0) {
+                        const data = docSnap.data(); const p1500 = data.precios?.['1500'] || 0; const p2500 = data.precios?.['2500'] || 0; const p3500 = data.precios?.['3500'] || 0;
+                        if ((p1500 + p2500 + p3500) > 0) {
                             playBeep();
-                            if (!window.carrito[sabor]) { window.carrito[sabor] = { nombre: data.nombre, tipo: data.tipo, stockReal: { '1000': p1000, '2500': p2500, '3500': p3500 }, variantes: {} }; }
+                            if (!window.carrito[sabor]) { window.carrito[sabor] = { nombre: data.nombre, tipo: data.tipo, stockReal: { '1500': p1500, '2500': p2500, '3500': p3500 }, variantes: {} }; }
                             mostrarToast(`🛒 ${data.nombre} escaneado.`); actualizarInterfaz(); switchView('list');
                         } else { playErrorBeep(); mostrarToast(`❌ No hay helados disponibles de ${data.nombre}`, true); }
                     } else { playErrorBeep(); mostrarToast("❌ Sabor no registrado", true); }
@@ -493,38 +585,54 @@
             }, () => {}).catch(e => alert("Da permisos de cámara."));
         }
 
-        // LÓGICA DINÁMICA DEL CARRITO (Con estilos para botón seleccionado)
         window.actualizarInterfaz = function() {
             const contenedor = document.getElementById('cart-container');
             const btnSubir = document.getElementById('btn-subir');
+            const txtTotal = document.getElementById('total-display');
             contenedor.innerHTML = '';
             let totalItemsEnCarrito = 0;
+            let sumaDinero = 0;
 
             for (const [idSabor, item] of Object.entries(window.carrito)) {
                 let botonesPrecios = '';
                 
                 if (item.tipo === 'comun') {
-                    if(PERMITIR_VENTA_1000) {
-                        const stock1K = item.stockReal['1000'] - (item.variantes['1000'] || 0);
-                        const selected1K = item.variantes['1000'] > 0 ? 'selected' : ''; // Agrega clase si está elegido
-                        botonesPrecios += `<button class="btn-price ${selected1K}" onclick="agregarVariante('${idSabor}', '1000')" ${stock1K <= 0 ? 'disabled' : ''}>$1.000</button>`;
+                    if(window.appConfig.habilitar_1500) {
+                        const stock1K = item.stockReal['1500'] - (item.variantes['1500'] || 0);
+                        const selected1K = item.variantes['1500'] > 0 ? 'selected' : ''; 
+                        const visualPrice = window.esMayor ? window.PRECIO_MAYOR_1500 : 1500;
+                        botonesPrecios += `<button class="btn-price ${selected1K}" onclick="agregarVariante('${idSabor}', '1500')" ${stock1K <= 0 ? 'disabled' : ''}>$${visualPrice}</button>`;
                     }
-                    const stock2K = item.stockReal['2500'] - (item.variantes['2500'] || 0);
-                    const selected2K = item.variantes['2500'] > 0 ? 'selected' : '';
-                    botonesPrecios += `<button class="btn-price ${selected2K}" onclick="agregarVariante('${idSabor}', '2500')" ${stock2K <= 0 ? 'disabled' : ''}>$2.500</button>`;
+                    if(window.appConfig.habilitar_2500) {
+                        const stock2K = item.stockReal['2500'] - (item.variantes['2500'] || 0);
+                        const selected2K = item.variantes['2500'] > 0 ? 'selected' : '';
+                        const visualPrice = window.esMayor ? window.PRECIO_MAYOR_2500 : 2500;
+                        botonesPrecios += `<button class="btn-price ${selected2K}" onclick="agregarVariante('${idSabor}', '2500')" ${stock2K <= 0 ? 'disabled' : ''}>$${visualPrice}</button>`;
+                    }
                 } else if (item.tipo === 'cereal') {
                     const stock3K = item.stockReal['3500'] - (item.variantes['3500'] || 0);
                     const selected3K = item.variantes['3500'] > 0 ? 'selected' : '';
-                    botonesPrecios += `<button class="btn-price ${selected3K}" onclick="agregarVariante('${idSabor}', '3500')" ${stock3K <= 0 ? 'disabled' : ''}>$3.500</button>`;
+                    const visualPrice = window.esMayor ? window.PRECIO_MAYOR_3500 : 3500;
+                    botonesPrecios += `<button class="btn-price ${selected3K}" onclick="agregarVariante('${idSabor}', '3500')" ${stock3K <= 0 ? 'disabled' : ''}>$${visualPrice}</button>`;
                 }
 
                 let filasVariantes = '';
                 for(const [precio, cantidad] of Object.entries(item.variantes)) {
                     if (cantidad > 0) {
                         totalItemsEnCarrito++;
+                        
+                        // Calculo del dinero para esta variante
+                        let precioUsar = parseInt(precio);
+                        if (window.esMayor) {
+                            if(precio === '1500') precioUsar = window.PRECIO_MAYOR_1500;
+                            else if(precio === '2500') precioUsar = window.PRECIO_MAYOR_2500;
+                            else if(precio === '3500') precioUsar = window.PRECIO_MAYOR_3500;
+                        }
+                        sumaDinero += (cantidad * precioUsar);
+
                         filasVariantes += `
                             <div class="variant-row">
-                                <span style="font-weight:bold; font-size: var(--text-base);">$${precio}</span>
+                                <span style="font-weight:bold; font-size: var(--text-base); color: ${window.esMayor ? 'var(--purple)' : 'var(--text-main)'};">$${precioUsar}</span>
                                 <div class="qty-controls">
                                     <button class="btn-qty" onclick="cambiarCantidadVariante('${idSabor}', '${precio}', -1)">-</button>
                                     <span style="font-size: var(--text-subtitle); font-weight: bold;">${cantidad}</span>
@@ -535,17 +643,20 @@
                     }
                 }
 
-                contenedor.innerHTML += `
-                    <div class="card-item">
-                        <div class="card-header">
-                            <span>${item.nombre}</span>
-                            <button class="btn-delete" style="background:none; font-size:1.5rem; padding:0;" onclick="eliminarSaborCompleto('${idSabor}')">✖️</button>
-                        </div>
-                        <div class="price-buttons">${botonesPrecios}</div>
-                        ${filasVariantes}
-                    </div>`;
+                if (botonesPrecios !== '' || filasVariantes !== '') {
+                    contenedor.innerHTML += `
+                        <div class="card-item">
+                            <div class="card-header">
+                                <span>${item.nombre}</span>
+                                <button class="btn-delete" style="background:none; font-size:1.5rem; padding:0;" onclick="eliminarSaborCompleto('${idSabor}')">✖️</button>
+                            </div>
+                            <div class="price-buttons">${botonesPrecios}</div>
+                            ${filasVariantes}
+                        </div>`;
+                }
             }
 
+            txtTotal.innerText = `Total: $${sumaDinero.toLocaleString()}`;
             btnSubir.disabled = totalItemsEnCarrito === 0;
             if(Object.keys(window.carrito).length === 0) contenedor.innerHTML = '<p style="text-align:center; color:#888; font-size: var(--text-base);">Escanea un QR para empezar</p>';
         };
